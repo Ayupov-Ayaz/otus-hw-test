@@ -76,11 +76,12 @@ func Unpack(str string) (string, error) {
 		if !isNumber {
 			lastSymbol = currSymbol
 
-			if !isZero(nextSymbol) { //skip
+			if !isZero(nextSymbol) {
 				resp += currSymbol
 			}
+		}
 
-		} else {
+		if isNumber {
 			if _, isNumber = castToNumber(nextSymbol); isNumber || lastSymbol == "" {
 				return "", ErrInvalidString
 			}
