@@ -11,9 +11,6 @@ type field struct {
 }
 
 type bucket struct {
-	round          int
-	min            int
-	max            int
 	fields         []field
 	bucketCapacity int
 }
