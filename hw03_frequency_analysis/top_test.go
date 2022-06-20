@@ -80,3 +80,35 @@ func TestTop10(t *testing.T) {
 		}
 	})
 }
+
+func TestBucketAdd(t *testing.T) {
+	tests := []struct {
+		input string
+		count int
+	}{
+		{"d", 21},
+		{"a", 1},
+		{"c", 10},
+		{"cb", 10},
+		{"b", 2},
+		{"bqeq", 1},
+		{"ba", 15},
+		{"db", 20},
+		{"fdfd", 5},
+		{"da", 20},
+	}
+
+	bucket := newBucket(5)
+
+	for _, tt := range tests {
+		bucket.add(tt.input, tt.count)
+	}
+
+	top5 := bucket.getTop()
+	require.Equal(t, 5, len(top5))
+	require.Equal(t, "d", top5[0])
+	require.Equal(t, "da", top5[1])
+	require.Equal(t, "db", top5[2])
+	require.Equal(t, "ba", top5[3])
+	require.Equal(t, "cb", top5[4])
+}
