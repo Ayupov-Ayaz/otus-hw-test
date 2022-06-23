@@ -1,4 +1,4 @@
-module github.com/ayupov-ayaz/hw03_frequency_analysis
+module github.com/ayupov-ayaz/otus-hw-test/hw03_frequency_analysis
 
 go 1.16
 
