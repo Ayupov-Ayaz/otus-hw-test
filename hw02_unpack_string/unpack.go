@@ -73,14 +73,6 @@ func Unpack(str string) (string, error) {
 			nextSymbol = string(runes[i+1])
 		}
 
-		if !isNumber {
-			lastSymbol = currSymbol
-
-			if !isZero(nextSymbol) {
-				resp += currSymbol
-			}
-		}
-
 		if isNumber {
 			if _, isNumber = castToNumber(nextSymbol); isNumber || lastSymbol == "" {
 				return "", ErrInvalidString
@@ -88,8 +80,14 @@ func Unpack(str string) (string, error) {
 
 			if number == 0 {
 				continue
-			} else {
-				resp += makeDuplicate(lastSymbol, number-1)
+			}
+
+			resp += makeDuplicate(lastSymbol, number-1)
+		} else {
+			lastSymbol = currSymbol
+
+			if !isZero(nextSymbol) {
+				resp += currSymbol
 			}
 		}
 	}
