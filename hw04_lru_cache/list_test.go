@@ -49,3 +49,42 @@ func TestList(t *testing.T) {
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
 }
+
+func TestList_Push(t *testing.T) {
+	const count = 10
+
+	push := func(add func(v interface{}) *ListItem) {
+		for i := 0; i < count; i++ {
+			add(i)
+		}
+	}
+
+	check := func(t *testing.T, list List, exps []int) {
+		curr := list.Front()
+		require.Nil(t, curr.Prev)
+		require.Equal(t, count, list.Len())
+		require.Equal(t, count, len(exps))
+
+		for _, i := range exps {
+			item := curr.Value.(int)
+			require.Equal(t, i, item)
+			if curr.Next == nil {
+				break
+			}
+			curr = curr.Next
+		}
+	}
+
+	t.Run("PushFront", func(t *testing.T) {
+		list := NewList()
+		push(list.PushFront)
+		check(t, list, []int{9, 8, 7, 6, 5, 4, 3, 2, 1, 0})
+	})
+
+	t.Run("PushBack", func(t *testing.T) {
+		list := NewList()
+		push(list.PushBack)
+		require.Equal(t, list.Len(), count)
+		check(t, list, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+	})
+}
