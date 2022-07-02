@@ -103,6 +103,7 @@ func (l *list) removeFromMiddle(item *ListItem) {
 func (l *list) removeTail(item *ListItem) {
 	if item.Prev != nil {
 		item.Prev.Next = nil
+		l.tail = item.Prev
 	}
 
 	l.count--
