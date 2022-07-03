@@ -1,5 +1,7 @@
 package hw04lrucache
 
+import "sync"
+
 type List interface {
 	Len() int
 	Front() *ListItem
@@ -25,24 +27,36 @@ func NewListItem(value interface{}, next, prev *ListItem) *ListItem {
 }
 
 type list struct {
+	mu    *sync.RWMutex
 	count int
 	tail  *ListItem
 	head  *ListItem
 }
 
-func NewList() *list {
-	return &list{}
+func newList() *list {
+	return &list{
+		mu: &sync.RWMutex{},
+	}
 }
 
 func (l list) Len() int {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.count
 }
 
 func (l list) Front() *ListItem {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.head
 }
 
 func (l list) Back() *ListItem {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.tail
 }
 
@@ -60,20 +74,29 @@ func (l *list) pushFront(item *ListItem) {
 
 	item.Prev = nil
 
+	l.increment()
+}
+
+func (l *list) increment() {
 	l.count++
 }
 
-func (l *list) PushFront(v interface{}) *ListItem {
-	item := NewListItem(v, l.head, nil)
+func (l *list) decrement() {
+	l.count--
+}
 
+func (l *list) PushFront(v interface{}) *ListItem {
+	l.mu.Lock()
+	item := NewListItem(v, l.head, nil)
 	l.pushFront(item)
+	l.mu.Unlock()
 
 	return item
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
+	l.mu.Lock()
 	item := NewListItem(v, nil, l.tail)
-
 	if l.tail != nil {
 		l.tail.Next = item
 	}
@@ -83,7 +106,8 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	}
 
 	l.tail = item
-	l.count++
+	l.increment()
+	l.mu.Unlock()
 
 	return item
 }
@@ -97,7 +121,7 @@ func (l *list) removeFromMiddle(item *ListItem) {
 		item.Next.Prev = item.Prev
 	}
 
-	l.count--
+	l.decrement()
 }
 
 func (l *list) removeTail(item *ListItem) {
@@ -106,7 +130,7 @@ func (l *list) removeTail(item *ListItem) {
 		l.tail = item.Prev
 	}
 
-	l.count--
+	l.decrement()
 }
 
 func (l *list) removeHead(item *ListItem) {
@@ -115,20 +139,33 @@ func (l *list) removeHead(item *ListItem) {
 	}
 
 	l.head = item.Next
-	l.count--
+	l.decrement()
 }
 
-func (l *list) Remove(item *ListItem) {
+func (l *list) remove(item *ListItem) {
 	if item.Prev != nil && item.Next != nil {
 		l.removeFromMiddle(item)
-	} else if item.Prev != nil {
+		return
+	}
+
+	if item.Prev != nil {
 		l.removeTail(item)
-	} else if item.Next != nil {
+	}
+
+	if item.Next != nil {
 		l.removeHead(item)
 	}
 }
 
+func (l *list) Remove(item *ListItem) {
+	l.mu.Lock()
+	l.remove(item)
+	l.mu.Unlock()
+}
+
 func (l *list) MoveToFront(item *ListItem) {
-	l.Remove(item)
+	l.mu.Lock()
+	l.remove(item)
 	l.pushFront(item)
+	l.mu.Unlock()
 }

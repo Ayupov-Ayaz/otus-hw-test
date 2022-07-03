@@ -52,7 +52,7 @@ func TestCache(t *testing.T) {
 	t.Run("purge logic", func(t *testing.T) {
 		const count = 10
 
-		list := NewList()
+		list := newList()
 		cache := newLruCache(count, list)
 		for i := 0; i < count; i++ {
 			ok := cache.Set(Key(strconv.Itoa(i)), i)
@@ -66,7 +66,6 @@ func TestCache(t *testing.T) {
 			require.False(t, ok)
 			require.Nil(t, v)
 		}
-
 	})
 }
 
@@ -99,7 +98,7 @@ var makeKey = func(i int) Key {
 func TestLruCache_Set(t *testing.T) {
 	const count = 10
 
-	list := NewList()
+	list := newList()
 	cache := newLruCache(10, list)
 
 	for i := 0; i < count; i++ {
@@ -124,18 +123,21 @@ func TestLruCache_Set(t *testing.T) {
 	require.Equal(t, 0, k)
 
 	// если элемент присутствует в словаре,
-	//то обновить его значение и переместить элемент в начало очереди;
+	// то обновить его значение и переместить элемент в начало очереди;
 	const multiplier = 100
 	for i := 0; i < count; i++ {
 		ok := cache.Set(makeKey(i), i*multiplier)
 		require.True(t, ok)
-		require.Equal(t, i*multiplier, list.Front().Value.(int))
+		exp := i * multiplier
+		head := list.Front()
+		got := head.Value.(int)
+		require.Equal(t, exp, got)
 		require.Equal(t, count, list.Len())
 	}
 
-	//если элемента нет в словаре, то добавить в словарь и в начало очереди
-	//(при этом, если размер очереди больше ёмкости кэша,
-	//то необходимо удалить последний элемент из очереди и его значение из словаря);
+	// если элемента нет в словаре, то добавить в словарь и в начало очереди
+	// (при этом, если размер очереди больше ёмкости кэша,
+	// то необходимо удалить последний элемент из очереди и его значение из словаря);
 	for i := 1; i < count+1; i++ {
 		// проверяю, что удалится (прямой вызов, чтобы не сдвигать очередь)
 		checkKey := makeKey(i - 1)
@@ -173,7 +175,7 @@ func TestLruCache_Set(t *testing.T) {
 func TestLruCache_Get(t *testing.T) {
 	const count = 10
 
-	list := NewList()
+	list := newList()
 	cache := newLruCache(count, list)
 	for i := 0; i < count; i++ {
 		cache.Set(makeKey(i), i)
@@ -196,7 +198,7 @@ func TestLruCache_Get(t *testing.T) {
 	require.Equal(t, 0, k)
 
 	// если элемент присутствует в словаре,
-	//то переместить элемент в начало очереди и вернуть его значение и true;
+	// то переместить элемент в начало очереди и вернуть его значение и true;
 	for i := 0; i < count; i++ {
 		v, ok := cache.Get(makeKey(i))
 		require.True(t, ok)
@@ -206,8 +208,8 @@ func TestLruCache_Get(t *testing.T) {
 		require.Equal(t, i, head.Value.(int))
 	}
 
-	//если элемента нет в словаре,
-	//то вернуть nil и false
+	// если элемента нет в словаре,
+	// то вернуть nil и false
 	v, ok := cache.Get(makeKey(count))
 	require.False(t, ok)
 	require.Nil(t, v)
