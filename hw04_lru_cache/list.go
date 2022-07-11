@@ -10,6 +10,7 @@ type List interface {
 	PushBack(v interface{}) *ListItem
 	Remove(i *ListItem)
 	MoveToFront(i *ListItem)
+	Clear()
 }
 
 type ListItem struct {
@@ -167,5 +168,13 @@ func (l *list) MoveToFront(item *ListItem) {
 	l.mu.Lock()
 	l.remove(item)
 	l.pushFront(item)
+	l.mu.Unlock()
+}
+
+func (l *list) Clear() {
+	l.mu.Lock()
+	l.tail = nil
+	l.head = nil
+	l.count = 0
 	l.mu.Unlock()
 }
