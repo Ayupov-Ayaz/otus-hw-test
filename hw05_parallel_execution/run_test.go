@@ -68,3 +68,65 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 }
+
+func TestRun2(t *testing.T) {
+	cases := []struct {
+		name           string
+		maxErrorsCount int
+		tasksCount     int
+		tasksCompleted int32
+		workersCount   int
+		err            error
+	}{
+		{
+			name:           "max errors count == 0 (w<t)",
+			maxErrorsCount: 0,
+			workersCount:   20,
+			tasksCount:     30,
+			tasksCompleted: 30,
+		},
+		{
+			name:           "max errors count == 0 (w>t)",
+			maxErrorsCount: 0,
+			workersCount:   50,
+			tasksCount:     30,
+			tasksCompleted: 30,
+		},
+		{
+			name:           "max errors count < 0",
+			maxErrorsCount: -1,
+			workersCount:   10,
+			tasksCount:     20,
+			tasksCompleted: 0,
+			err:            ErrErrorsLimitExceeded,
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			tasks := make([]Task, 0, tt.tasksCount)
+
+			var runTasksCount int32
+			var sumTime time.Duration
+
+			for i := 0; i < tt.tasksCount; i++ {
+				taskSleep := time.Millisecond * time.Duration(rand.Intn(100))
+				sumTime += taskSleep
+
+				tasks = append(tasks, func() error {
+					time.Sleep(taskSleep)
+					atomic.AddInt32(&runTasksCount, 1)
+					return tt.err
+				})
+			}
+
+			start := time.Now()
+			err := Run(tasks, tt.workersCount, tt.maxErrorsCount)
+			elapsedTime := time.Since(start)
+			require.ErrorIs(t, err, tt.err)
+
+			require.Equal(t, tt.tasksCompleted, runTasksCount, "not all tasks were completed")
+			require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
+		})
+	}
+}
