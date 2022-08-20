@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 
@@ -13,23 +15,33 @@ const (
 )
 
 func TestCopy(t *testing.T) {
-	checkSize := func(size int64) func(t *testing.T) {
-		return func(t *testing.T) {
+	checkSize := func(size int64) func() error {
+		return func() error {
 			info, err := os.Stat(outFileName)
-			require.Nil(t, err)
-			require.Equal(t, size, info.Size())
+			if err != nil {
+				return err
+			}
+			if size != info.Size() {
+				return fmt.Errorf("exp=%d got=%d", size, info.Size())
+			}
+
+			return os.Remove(outFileName)
 		}
 	}
 
-	fileNotFound := func(t *testing.T) {
+	fileNotFound := func() error {
 		_, err := os.Stat(outFileName)
-		require.ErrorIs(t, err, os.ErrNotExist)
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("exp = '%w' got = '%s'", os.ErrNotExist, err.Error())
+		}
+
+		return nil
 	}
 	tests := []struct {
 		name   string
 		limit  int64
 		offset int64
-		after  func(t *testing.T)
+		after  func() error
 		err    error
 	}{
 		{
@@ -38,10 +50,6 @@ func TestCopy(t *testing.T) {
 			err:    ErrOffsetExceedsFileSize,
 			after:  fileNotFound,
 			limit:  1,
-		},
-		{
-			name:  "copy 0 byte",
-			after: fileNotFound,
 		},
 		{
 			name:  "copy 10 byte",
@@ -59,8 +67,7 @@ func TestCopy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := Copy(inFileName, outFileName, tt.offset, tt.limit)
 			require.ErrorIs(t, err, tt.err)
-			err = os.Remove(outFileName)
-			require.Nil(t, err)
+			require.Nil(t, tt.after())
 		})
 	}
 }

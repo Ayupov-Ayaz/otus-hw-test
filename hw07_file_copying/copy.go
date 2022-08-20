@@ -35,7 +35,7 @@ func copyTo(reader io.Reader, writer io.Writer, need int64) error {
 		data := make([]byte, size)
 		_, err := reader.Read(data)
 		if err != nil {
-			if err != io.EOF {
+			if !errors.Is(err, io.EOF) {
 				return err
 			}
 			done = true
