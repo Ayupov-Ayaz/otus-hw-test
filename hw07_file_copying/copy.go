@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -22,6 +24,7 @@ func closeFile(closer io.Closer) {
 const bufferSize int64 = 1024
 
 func copyTo(reader io.Reader, writer io.Writer, need int64) error {
+	bar := pb.StartNew(int(need))
 	var done bool
 	for !done {
 		size := bufferSize
@@ -44,11 +47,14 @@ func copyTo(reader io.Reader, writer io.Writer, need int64) error {
 		}
 
 		need -= int64(wrote)
+		bar.Add(wrote)
 
 		if need == 0 {
 			done = true
 		}
 	}
+
+	bar.Finish()
 
 	return nil
 }
