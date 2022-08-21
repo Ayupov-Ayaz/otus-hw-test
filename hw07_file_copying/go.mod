@@ -1,4 +1,4 @@
-module github.com/Ayupov-Ayaz/hw07_file_copying
+module github.com/otus-hw-test/Ayupov-Ayaz/hw07_file_copying
 
 go 1.16
 
