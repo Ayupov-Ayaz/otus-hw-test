@@ -91,3 +91,64 @@ func TestPipeline(t *testing.T) {
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
 	})
 }
+
+func TestNewDoneStage(t *testing.T) {
+	const (
+		ms50  = time.Millisecond * 50
+		count = 10
+	)
+
+	tests := []struct {
+		name        string
+		doneTimeout time.Duration
+		exp         int
+	}{
+		{
+			name:        "exp 0",
+			doneTimeout: 0,
+		},
+		{
+			name:        "exp 10",
+			doneTimeout: 1 * time.Second,
+			exp:         10,
+		},
+	}
+
+	doneCh := func(timeOut time.Duration) In {
+		out := make(chan interface{})
+		go func() {
+			time.Sleep(timeOut)
+			close(out)
+		}()
+		return out
+	}
+
+	in := func() Out {
+		out := make(Bi)
+		go func() {
+			defer close(out)
+			for i := 0; i < count; i++ {
+				time.Sleep(ms50)
+				out <- i
+			}
+		}()
+		return out
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out := NewDoneStage(doneCh(tt.doneTimeout), in())
+
+			got := 0
+			for {
+				_, ok := <-out
+				if !ok {
+					break
+				}
+				got++
+			}
+
+			require.Equal(t, tt.exp, got)
+		})
+	}
+}
