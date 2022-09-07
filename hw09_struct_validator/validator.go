@@ -1,5 +1,14 @@
 package hw09structvalidator
 
+import (
+	"errors"
+	"reflect"
+)
+
+var (
+	ErrShouldBeStruct = errors.New("validation type should be struct")
+)
+
 type ValidationError struct {
 	Field string
 	Err   error
@@ -12,6 +21,27 @@ func (v ValidationErrors) Error() string {
 }
 
 func Validate(v interface{}) error {
-	// Place your code here.
+	valueOf := reflect.ValueOf(v)
+	if valueOf.Kind() != reflect.Struct {
+		return ErrShouldBeStruct
+	}
+
+	for i := 0; i < valueOf.NumField(); i++ {
+		tag := reflect.TypeOf(v).Field(i).Tag.Get("validate")
+		if tag == "" {
+			continue
+		}
+
+		val := valueOf.Field(i)
+		cmd := parseCommand(tag)
+		switch cmd {
+		case in:
+			if err := validateIn(val, tag); err != nil {
+				return err
+			}
+		case
+		}
+	}
+
 	return nil
 }
