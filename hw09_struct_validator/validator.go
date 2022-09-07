@@ -35,11 +35,14 @@ func Validate(v interface{}) error {
 		val := valueOf.Field(i)
 		cmd := parseCommand(tag)
 		switch cmd {
-		case in:
+		case inCommand:
 			if err := validateIn(val, tag); err != nil {
 				return err
 			}
-		case
+		case lenCommand:
+			if err := validateLen(val, tag); err != nil {
+				return err
+			}
 		}
 	}
 

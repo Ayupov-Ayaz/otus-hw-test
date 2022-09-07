@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -80,6 +81,20 @@ func inForString(v string, in []string) error {
 	}
 
 	return fmt.Errorf("exp:'%v': %w", in, ErrShouldBeIn)
+}
+
+func parseInTagValue(tag string) ([]string, error) {
+	if len(tag) < 3 {
+		return nil, ErrInvalidInCommand
+	}
+
+	v := strings.Split(tag[3:], ",")
+
+	if len(v) == 1 && v[0] == "" {
+		return nil, ErrTagValueIsEmpty
+	}
+
+	return v, nil
 }
 
 func validateIn(v reflect.Value, tag string) error {
