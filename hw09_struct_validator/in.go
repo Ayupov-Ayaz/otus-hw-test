@@ -13,7 +13,7 @@ var (
 	ErrShouldBeIn              = errors.New("should be in")
 )
 
-func inForInt(v int, in []string) error {
+func inForInt(field string, v int, in []string) error {
 	for _, strExp := range in {
 		exp, err := strconv.Atoi(strExp)
 		if err != nil {
@@ -25,17 +25,17 @@ func inForInt(v int, in []string) error {
 		}
 	}
 
-	return fmt.Errorf("exp:'%v': %w", in, ErrShouldBeIn)
+	return NewValidateError(field, fmt.Errorf("exp:'%v': %w", in, ErrShouldBeIn))
 }
 
-func inForString(v string, in []string) error {
+func inForString(field, v string, in []string) error {
 	for _, exp := range in {
 		if exp == v {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("exp:'%v': %w", in, ErrShouldBeIn)
+	return NewValidateError(field, fmt.Errorf("exp:'%v': %w", in, ErrShouldBeIn))
 }
 
 func parseInTagValue(tag string) ([]string, error) {
@@ -52,22 +52,47 @@ func parseInTagValue(tag string) ([]string, error) {
 	return v, nil
 }
 
-func validateIn(v reflect.Value, tag string) error {
+func validateIn(v reflect.Value, field, tag string) error {
 	values, err := parseInTagValue(tag)
 	if err != nil {
 		return err
 	}
 
 	value := v.Interface()
-
 	kind := v.Kind()
+
 	if kind == reflect.Int {
-		return inForInt(value.(int), values)
+		return inForInt(field, value.(int), values)
 	}
 
 	if kind == reflect.String {
-		return inForString(value.(string), values)
+		if err := inForString(field, value.(string), values); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if kind == reflect.Slice {
+		if intValues, ok := value.([]int); ok {
+			for _, number := range intValues {
+				if err := inForInt(field, number, values); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		} else if strValues, ok := value.([]string); ok {
+			for _, str := range strValues {
+				if err := inForString(field, str, values); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}
 	}
 
 	return fmt.Errorf("kind '%s': %w", v.Kind().String(), ErrInForKindNotImplemented)
+
 }

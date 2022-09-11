@@ -2,6 +2,7 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 type UserRole string
@@ -33,3 +34,35 @@ type (
 		Body string `json:"omitempty"`
 	}
 )
+
+func systemError(expErr error) func(gotErr error) bool {
+	return func(gotErr error) bool {
+		return errors.Is(gotErr, expErr)
+	}
+}
+
+func validateError(expErr ...ValidationError) func(gotErr error) bool {
+	return func(gotErr error) bool {
+		var vErrs ValidationErrors
+
+		if errors.As(gotErr, &vErrs) {
+			if len(vErrs) != len(expErr) {
+				return false
+			}
+
+			for i, err := range vErrs {
+				if err.Field != expErr[i].Field {
+					return false
+				}
+
+				if !errors.Is(err.Err, expErr[i].Err) {
+					return false
+				}
+			}
+
+			return true
+		}
+
+		return false
+	}
+}

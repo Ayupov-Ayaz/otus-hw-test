@@ -9,38 +9,34 @@ import (
 
 func TestValidate_in(t *testing.T) {
 	tests := []struct {
-		in          interface{}
-		expectedErr error
+		in       interface{}
+		checkErr func(gotErr error) bool
 	}{
 		{
-			in:          1,
-			expectedErr: ErrShouldBeStruct,
+			in:       1,
+			checkErr: systemError(ErrShouldBeStruct),
 		},
 		{
-			in:          "string",
-			expectedErr: ErrShouldBeStruct,
-		},
-		{
-			in:          Response{},
-			expectedErr: nil,
+			in:       "string",
+			checkErr: systemError(ErrShouldBeStruct),
 		},
 		{
 			in: struct {
 				Name string `validate:"in"`
 			}{},
-			expectedErr: ErrInvalidInCommand,
+			checkErr: systemError(ErrInvalidInCommand),
 		},
 		{
 			in: struct {
 				Name string `validate:"in:"`
 			}{},
-			expectedErr: ErrTagValueIsEmpty,
+			checkErr: systemError(ErrTagValueIsEmpty),
 		},
 		{
 			in: Response{
 				Code: 100,
 			},
-			expectedErr: ErrShouldBeIn,
+			checkErr: validateError(NewValidateError("Code", ErrShouldBeIn)),
 		},
 		{
 			in: struct {
@@ -68,12 +64,36 @@ func TestValidate_in(t *testing.T) {
 				Code: 200,
 			},
 		},
+		{
+			in: struct {
+				Codes []int `validate:"in:100,500,400"`
+			}{
+				Codes: []int{100, 200, 300, 400, 500},
+			},
+			checkErr: validateError(
+				NewValidateError("Codes", ErrShouldBeIn),
+			),
+		},
+		{
+			in: struct {
+				Codes []string `validate:"in:a,b,c"`
+			}{
+				Codes: []string{"a", "b", "c", "d"},
+			},
+			checkErr: validateError(
+				NewValidateError("Codes", ErrShouldBeIn),
+			),
+		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
 			err := Validate(tt.in)
-			require.ErrorIs(t, err, tt.expectedErr)
+			if tt.checkErr != nil {
+				require.True(t, tt.checkErr(err))
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }

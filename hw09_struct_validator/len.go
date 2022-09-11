@@ -30,22 +30,46 @@ func parseLenTagValue(tag string) (int, error) {
 	return exp, nil
 }
 
-func validateLen(v reflect.Value, tag string) error {
-	value := v.Interface()
-	if v.Kind() != reflect.String {
-		return ErrInvalidLenCommandValueType
+func checkLen(field, str string, exp int) error {
+	got := utf8.RuneCountInString(str)
+
+	if got != exp {
+		return NewValidateError(field, fmt.Errorf("exp '%d', got '%d': %w", exp, got, ErrInvalidLen))
 	}
 
+	return nil
+}
+
+func checkLenSliceString(field string, v interface{}, exp int) error {
+	strList, ok := v.([]string)
+	if !ok {
+		return fmt.Errorf("should be slice string:%w", ErrInvalidLenCommandValueType)
+	}
+
+	for _, str := range strList {
+		if err := checkLen(field, str, exp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateLen(v reflect.Value, field, tag string) error {
+	value := v.Interface()
 	exp, err := parseLenTagValue(tag)
 	if err != nil {
 		return err
 	}
 
-	got := utf8.RuneCountInString(value.(string))
+	kind := v.Kind()
 
-	if got != exp {
-		return fmt.Errorf("exp '%d', got '%d': %w", exp, got, ErrInvalidLen)
+	if kind == reflect.String {
+		return checkLen(field, value.(string), exp)
+	} else if kind == reflect.Slice {
+		return checkLenSliceString(field, value, exp)
 	}
 
-	return nil
+	return ErrInvalidLenCommandValueType
+
 }

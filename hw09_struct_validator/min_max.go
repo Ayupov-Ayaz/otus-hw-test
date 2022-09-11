@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -50,29 +49,25 @@ func extractMinMaxCommand(tag string) (int, Command, error) {
 	return v, cmd, err
 }
 
-func extractAndCompareMinMax(value int, tags []string) error {
-	for _, tag := range tags {
-		cmdValue, cmd, err := extractMinMaxCommand(tag)
-		if err != nil {
-			return err
-		}
+func extractAndCompareMinMax(value int, field string, tag string) error {
+	cmdValue, cmd, err := extractMinMaxCommand(tag)
+	if err != nil {
+		return err
+	}
 
-		if err := compareInt(value, cmdValue, cmd); err != nil {
-			return err
-		}
+	if err := compareInt(value, cmdValue, cmd); err != nil {
+		return NewValidateError(field, err)
 	}
 
 	return nil
 }
 
-func validateMinMax(v reflect.Value, tag string) error {
+func validateMinMax(v reflect.Value, field, tag string) error {
 	kind := v.Kind()
 
-	if kind != reflect.Slice && (kind < reflect.Int || kind > reflect.Int64) {
+	if kind != reflect.Slice && kind != reflect.Int {
 		return ErrInvalidMinMaxCommandValueType
 	}
-
-	tags := strings.Split(tag, "|")
 
 	if kind == reflect.Slice {
 		values, ok := v.Interface().([]int)
@@ -81,7 +76,7 @@ func validateMinMax(v reflect.Value, tag string) error {
 		}
 
 		for _, val := range values {
-			if err := extractAndCompareMinMax(val, tags); err != nil {
+			if err := extractAndCompareMinMax(val, field, tag); err != nil {
 				return err
 			}
 		}
@@ -92,7 +87,7 @@ func validateMinMax(v reflect.Value, tag string) error {
 			return fmt.Errorf("exp int: %w", ErrInvalidMinMaxCommandValueType)
 		}
 
-		if err := extractAndCompareMinMax(value, tags); err != nil {
+		if err := extractAndCompareMinMax(value, field, tag); err != nil {
 			return err
 		}
 	}

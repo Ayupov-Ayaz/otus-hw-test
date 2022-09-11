@@ -9,29 +9,29 @@ import (
 
 func TestValidate_len(t *testing.T) {
 	tests := []struct {
-		obj         interface{}
-		expectedErr error
+		obj      interface{}
+		checkErr func(gotErr error) bool
 	}{
 		{
-			expectedErr: ErrInvalidLenCommandValueType,
+			checkErr: systemError(ErrInvalidLenCommand),
 			obj: struct {
 				Name int `validate:"len"`
 			}{},
 		},
 		{
-			expectedErr: ErrInvalidLenCommand,
+			checkErr: systemError(ErrInvalidLenCommandValueType),
 			obj: struct {
-				Name string `validate:"len"`
+				Name int `validate:"len:1"`
 			}{},
 		},
 		{
-			expectedErr: ErrInvalidLen,
+			checkErr: validateError(NewValidateError("Name", ErrInvalidLen)),
 			obj: struct {
 				Name string `validate:"len:1"`
 			}{},
 		},
 		{
-			expectedErr: ErrInvalidLen,
+			checkErr: validateError(NewValidateError("Name", ErrInvalidLen)),
 			obj: struct {
 				Name string `validate:"len:5"`
 			}{
@@ -45,12 +45,27 @@ func TestValidate_len(t *testing.T) {
 				Name: "12345",
 			},
 		},
+		{
+			obj: struct {
+				Names []string `validate:"len:3"`
+			}{
+				Names: []string{
+					"1234",
+					"12345",
+				},
+			},
+			checkErr: validateError(NewValidateError("Names", ErrInvalidLen)),
+		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
 			err := Validate(tt.obj)
-			require.ErrorIs(t, err, tt.expectedErr)
+			if tt.checkErr != nil {
+				require.True(t, tt.checkErr(err))
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
