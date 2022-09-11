@@ -49,8 +49,6 @@ func TestValidate_len(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			t.Parallel()
-
 			err := Validate(tt.obj)
 			require.ErrorIs(t, err, tt.expectedErr)
 		})

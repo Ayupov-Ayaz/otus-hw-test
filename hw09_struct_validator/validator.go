@@ -43,6 +43,10 @@ func Validate(v interface{}) error {
 			if err := validateLen(val, tag); err != nil {
 				return err
 			}
+		case minCommand, maxCommand:
+			if err := validateMinMax(val, tag); err != nil {
+				return err
+			}
 		}
 	}
 

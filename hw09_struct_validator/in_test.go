@@ -56,12 +56,22 @@ func TestValidate_in(t *testing.T) {
 				Name: "Tommy",
 			},
 		},
+		{
+			in: struct {
+				Id int `validate:"in:123,234,567,894"`
+			}{
+				Id: 894,
+			},
+		},
+		{
+			in: Response{
+				Code: 200,
+			},
+		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			t.Parallel()
-
 			err := Validate(tt.in)
 			require.ErrorIs(t, err, tt.expectedErr)
 		})

@@ -16,6 +16,8 @@ const (
 	_ Command = iota
 	inCommand
 	lenCommand
+	minCommand
+	maxCommand
 )
 
 func isIn(tag string) bool {
@@ -26,6 +28,14 @@ func isLen(tag string) bool {
 	return strings.HasPrefix(tag, "len")
 }
 
+func isMin(tag string) bool {
+	return strings.HasPrefix(tag, "min")
+}
+
+func isMax(tag string) bool {
+	return strings.HasPrefix(tag, "max")
+}
+
 func parseCommand(tag string) Command {
 	if isIn(tag) {
 		return inCommand
@@ -33,6 +43,14 @@ func parseCommand(tag string) Command {
 
 	if isLen(tag) {
 		return lenCommand
+	}
+
+	if isMin(tag) {
+		return minCommand
+	}
+
+	if isMax(tag) {
+		return maxCommand
 	}
 
 	return 0
