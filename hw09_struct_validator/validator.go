@@ -79,7 +79,7 @@ func Validate(v interface{}) error {
 		val := valueOf.Field(i)
 
 		for _, tag := range strings.Split(_tag, "|") {
-			cmd := parseCommand(_tag)
+			cmd := parseCommand(tag)
 			switch cmd {
 			case inCommand:
 				if err := validateIn(val, name, tag); err != nil {
@@ -95,6 +95,12 @@ func Validate(v interface{}) error {
 				}
 			case minCommand, maxCommand:
 				if err := validateMinMax(val, name, tag); err != nil {
+					if !collectValidateError(err) {
+						return err
+					}
+				}
+			case regexpCommand:
+				if err := validateRegexp(val, name, tag); err != nil {
 					if !collectValidateError(err) {
 						return err
 					}

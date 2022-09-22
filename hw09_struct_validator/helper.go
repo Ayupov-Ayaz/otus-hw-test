@@ -18,6 +18,7 @@ const (
 	lenCommand
 	minCommand
 	maxCommand
+	regexpCommand
 )
 
 func isIn(tag string) bool {
@@ -36,6 +37,10 @@ func isMax(tag string) bool {
 	return strings.HasPrefix(tag, "max")
 }
 
+func isRegexp(tag string) bool {
+	return strings.HasPrefix(tag, "regexp")
+}
+
 func parseCommand(tag string) Command {
 	if isIn(tag) {
 		return inCommand
@@ -51,6 +56,10 @@ func parseCommand(tag string) Command {
 
 	if isMax(tag) {
 		return maxCommand
+	}
+
+	if isRegexp(tag) {
+		return regexpCommand
 	}
 
 	return 0

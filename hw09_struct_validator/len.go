@@ -56,12 +56,12 @@ func checkLenSliceString(field string, v interface{}, exp int) error {
 }
 
 func validateLen(v reflect.Value, field, tag string) error {
-	value := v.Interface()
 	exp, err := parseLenTagValue(tag)
 	if err != nil {
 		return err
 	}
 
+	value := v.Interface()
 	kind := v.Kind()
 
 	if kind == reflect.String {
