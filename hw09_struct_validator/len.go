@@ -11,7 +11,7 @@ import (
 var (
 	ErrInvalidLenCommand          = errors.New("invalid validation command 'len'")
 	ErrInvalidLenCommandValueType = errors.New("invalid validation command 'len' value type")
-	ErrInvalidLen                 = errors.New("invalid len")
+	ErrLenInvalid                 = errors.New("invalid len")
 )
 
 func parseLenTagValue(tag string) (int, error) {
@@ -34,7 +34,7 @@ func checkLen(field, str string, exp int) error {
 	got := utf8.RuneCountInString(str)
 
 	if got != exp {
-		return NewValidateError(field, fmt.Errorf("exp '%d', got '%d': %w", exp, got, ErrInvalidLen))
+		return NewValidateError(field, fmt.Errorf("exp '%d', got '%d': %w", exp, got, ErrLenInvalid))
 	}
 
 	return nil
@@ -62,14 +62,12 @@ func validateLen(v reflect.Value, field, tag string) error {
 	}
 
 	value := v.Interface()
-	kind := v.Kind()
 
-	if kind == reflect.String {
-		return checkLen(field, value.(string), exp)
-	} else if kind == reflect.Slice {
+	if v.Kind() == reflect.String {
+		return checkLen(field, castToString(value), exp)
+	} else if v.Kind() == reflect.Slice {
 		return checkLenSliceString(field, value, exp)
 	}
 
 	return ErrInvalidLenCommandValueType
-
 }

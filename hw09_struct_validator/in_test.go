@@ -36,7 +36,7 @@ func TestValidate_in(t *testing.T) {
 			in: Response{
 				Code: 100,
 			},
-			checkErr: validateError(NewValidateError("Code", ErrShouldBeIn)),
+			checkErr: validateError(NewValidateError("Code", ErrInInvalid)),
 		},
 		{
 			in: struct {
@@ -54,9 +54,9 @@ func TestValidate_in(t *testing.T) {
 		},
 		{
 			in: struct {
-				Id int `validate:"in:123,234,567,894"`
+				ID int `validate:"in:123,234,567,894"`
 			}{
-				Id: 894,
+				ID: 894,
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func TestValidate_in(t *testing.T) {
 				Codes: []int{100, 200, 300, 400, 500},
 			},
 			checkErr: validateError(
-				NewValidateError("Codes", ErrShouldBeIn),
+				NewValidateError("Codes", ErrInInvalid),
 			),
 		},
 		{
@@ -81,7 +81,7 @@ func TestValidate_in(t *testing.T) {
 				Codes: []string{"a", "b", "c", "d"},
 			},
 			checkErr: validateError(
-				NewValidateError("Codes", ErrShouldBeIn),
+				NewValidateError("Codes", ErrInInvalid),
 			),
 		},
 	}

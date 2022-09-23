@@ -6,9 +6,57 @@ import (
 	"strings"
 )
 
-var (
-	ErrShouldBeStruct = errors.New("validation type should be struct")
-)
+var ErrShouldBeStruct = errors.New("validation type should be struct")
+
+func validate(vErrors *ValidationErrors, tags []string, val reflect.Value, field string) error {
+	var err error
+
+	for _, tag := range tags {
+		switch parseCommand(tag) {
+		case inCommand:
+			err = validateIn(val, field, tag)
+		case lenCommand:
+			err = validateLen(val, field, tag)
+		case maxCommand:
+			err = validateMax(val, field, tag)
+		case minCommand:
+			err = validateMin(val, field, tag)
+		case regexpCommand:
+			err = validateRegexp(val, field, tag)
+		}
+
+		if err != nil && !vErrors.add(err) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Validate(v interface{}) error {
+	valueOf := reflect.ValueOf(v)
+	if valueOf.Kind() != reflect.Struct {
+		return ErrShouldBeStruct
+	}
+
+	vErrors := &ValidationErrors{}
+	for i := 0; i < valueOf.NumField(); i++ {
+		field := reflect.TypeOf(v).Field(i)
+		_tag := field.Tag.Get("validate")
+		if _tag == "" {
+			continue
+		}
+
+		val := valueOf.Field(i)
+		tags := strings.Split(_tag, "|")
+
+		if err := validate(vErrors, tags, val, field.Name); err != nil {
+			return err
+		}
+	}
+
+	return vErrors.getErrors()
+}
 
 type ValidationError struct {
 	Field string
@@ -22,6 +70,8 @@ func NewValidateError(field string, err error) ValidationError {
 	}
 }
 
+type ValidationErrors []ValidationError
+
 func (v ValidationError) Error() string {
 	buff := strings.Builder{}
 	buff.WriteString("field '")
@@ -31,8 +81,6 @@ func (v ValidationError) Error() string {
 
 	return buff.String()
 }
-
-type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
 	buff := strings.Builder{}
@@ -50,64 +98,20 @@ func (v ValidationErrors) Error() string {
 	return buff.String()
 }
 
-func Validate(v interface{}) error {
-	valueOf := reflect.ValueOf(v)
-	if valueOf.Kind() != reflect.Struct {
-		return ErrShouldBeStruct
+func (v *ValidationErrors) add(err error) bool {
+	var vErr ValidationError
+	if errors.As(err, &vErr) {
+		*v = append(*v, vErr)
+		return true
 	}
 
-	var response ValidationErrors
-	collectValidateError := func(err error) bool {
-		var vErr ValidationError
-		if errors.As(err, &vErr) {
-			response = append(response, vErr)
-			return true
-		}
+	return false
+}
 
-		return false
+func (v ValidationErrors) getErrors() error {
+	if len(v) == 0 {
+		return nil
 	}
 
-	for i := 0; i < valueOf.NumField(); i++ {
-		field := reflect.TypeOf(v).Field(i)
-		name := field.Name
-
-		_tag := field.Tag.Get("validate")
-		if _tag == "" {
-			continue
-		}
-
-		val := valueOf.Field(i)
-
-		for _, tag := range strings.Split(_tag, "|") {
-			cmd := parseCommand(tag)
-			switch cmd {
-			case inCommand:
-				if err := validateIn(val, name, tag); err != nil {
-					if !collectValidateError(err) {
-						return err
-					}
-				}
-			case lenCommand:
-				if err := validateLen(val, name, tag); err != nil {
-					if !collectValidateError(err) {
-						return err
-					}
-				}
-			case minCommand, maxCommand:
-				if err := validateMinMax(val, name, tag); err != nil {
-					if !collectValidateError(err) {
-						return err
-					}
-				}
-			case regexpCommand:
-				if err := validateRegexp(val, name, tag); err != nil {
-					if !collectValidateError(err) {
-						return err
-					}
-				}
-			}
-		}
-	}
-
-	return response
+	return v
 }

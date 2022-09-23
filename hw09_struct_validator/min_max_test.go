@@ -11,7 +11,7 @@ func TestValidation_min_max(t *testing.T) {
 	vErr := func(err ...error) func(gotErr error) bool {
 		errors := make([]ValidationError, len(err))
 		for i := 0; i < len(err); i++ {
-			errors[i] = NewValidateError("Id", err[i])
+			errors[i] = NewValidateError("ID", err[i])
 		}
 
 		return validateError(errors...)
@@ -24,93 +24,93 @@ func TestValidation_min_max(t *testing.T) {
 	}{
 		{
 			name:     "invalid type",
-			checkErr: systemError(ErrInvalidMinMaxCommandValueType),
+			checkErr: systemError(ErrInvalidMinCommandValueType),
 			obj: struct {
-				Id string `validate:"min"`
+				ID string `validate:"min"`
 			}{},
 		},
 		{
 			name:     "parse tag failed",
-			checkErr: systemError(ErrInvalidMinMaxCommand),
+			checkErr: systemError(ErrExtractMinMaxValueFailed),
 			obj: struct {
-				Id int `validate:"min"`
+				ID int `validate:"min"`
 			}{},
 		},
 		{
 			name:     "min failed",
-			checkErr: vErr(ErrInvalidMin),
+			checkErr: vErr(ErrMinInvalid),
 			obj: struct {
-				Id int `validate:"min:10"`
+				ID int `validate:"min:10"`
 			}{},
 		},
 		{
 			name:     "max failed",
 			checkErr: vErr(ErrInvalidMax),
 			obj: struct {
-				Id int `validate:"max:10"`
+				ID int `validate:"max:10"`
 			}{
-				Id: 11,
+				ID: 11,
 			},
 		},
 		{
 			name: "min success",
 			obj: struct {
-				Id int `validate:"min:10"`
+				ID int `validate:"min:10"`
 			}{
-				Id: 11,
+				ID: 11,
 			},
 		},
 		{
 			name: "max success",
 			obj: struct {
-				Id int `validate:"max:10"`
+				ID int `validate:"max:10"`
 			}{
-				Id: 9,
+				ID: 9,
 			},
 		},
 		{
 			name:     "min success, max failed",
 			checkErr: vErr(ErrInvalidMax),
 			obj: struct {
-				Id int `validate:"min:1|max11"`
+				ID int `validate:"min:1|max11"`
 			}{
-				Id: 12,
+				ID: 12,
 			},
 		},
 		{
 			name:     "max success, min failed",
-			checkErr: vErr(ErrInvalidMin),
+			checkErr: vErr(ErrMinInvalid),
 			obj: struct {
-				Id int `validate:"max:10|min:2"`
+				ID int `validate:"max:10|min:2"`
 			}{
-				Id: 1,
+				ID: 1,
 			},
 		},
 		{
 			name:     "min, max in slice, min failed",
-			checkErr: vErr(ErrInvalidMin),
+			checkErr: vErr(ErrMinInvalid),
 			obj: struct {
-				Id []int `validate:"min:10|max:20"`
+				ID []int `validate:"min:10|max:20"`
 			}{
-				Id: []int{9, 20},
+				ID: []int{9, 20},
 			},
 		},
 		{
 			name:     "min, max in slice, max failed",
 			checkErr: vErr(ErrInvalidMax),
 			obj: struct {
-				Id []int `validate:"min:10|max:20"`
+				ID []int `validate:"min:10|max:20"`
 			}{
-				Id: []int{11, 21},
+				ID: []int{11, 21},
 			},
 		},
 		{
 			name:     "min and max value invalid",
-			checkErr: vErr(ErrInvalidMin, ErrInvalidMax),
+			checkErr: vErr(ErrMinInvalid, ErrInvalidMax),
 			obj: struct {
-				Id []int `validate:"min:10|max:20"`
+				ID []int `validate:"min:10|max:20"`
 			}{
-				Id: []int{0, 21},
+				ID: []int{0, 21},
 			},
 		},
 	}

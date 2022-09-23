@@ -34,7 +34,7 @@ func TestValidateRegexp(t *testing.T) {
 			},
 		},
 		{
-			checkErr: validateError(NewValidateError("Ids", ErrInvalidLen)),
+			checkErr: validateError(NewValidateError("Ids", ErrLenInvalid)),
 			obj: struct {
 				Ids []string `validate:"regexp:\\d+|len:3"`
 			}{

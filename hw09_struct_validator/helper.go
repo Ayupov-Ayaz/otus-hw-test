@@ -2,6 +2,7 @@ package hw09structvalidator
 
 import (
 	"errors"
+	"reflect"
 	"strings"
 )
 
@@ -63,4 +64,13 @@ func parseCommand(tag string) Command {
 	}
 
 	return 0
+}
+
+func castToString(v interface{}) string {
+	resp, ok := v.(string)
+	if ok {
+		return resp
+	}
+
+	return reflect.ValueOf(v).Convert(reflect.TypeOf("")).String()
 }

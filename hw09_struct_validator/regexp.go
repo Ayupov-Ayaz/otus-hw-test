@@ -14,7 +14,6 @@ var (
 )
 
 func parseRegexpTagValue(tag string) (string, error) {
-	//regexp:
 	if len(tag) <= 7 {
 		return "", ErrInvalidRegexpCommand
 	}
@@ -37,7 +36,7 @@ func validateRegexp(v reflect.Value, field, tag string) error {
 	kind := v.Kind()
 
 	if kind == reflect.String {
-		if !_regexp.MatchString(value.(string)) {
+		if !_regexp.MatchString(castToString(value)) {
 			return NewValidateError(field, fmt.Errorf("rule:'%s':%w", rule, ErrRegexpInvalid))
 		}
 

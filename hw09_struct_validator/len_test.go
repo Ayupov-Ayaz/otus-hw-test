@@ -25,13 +25,13 @@ func TestValidate_len(t *testing.T) {
 			}{},
 		},
 		{
-			checkErr: validateError(NewValidateError("Name", ErrInvalidLen)),
+			checkErr: validateError(NewValidateError("Name", ErrLenInvalid)),
 			obj: struct {
 				Name string `validate:"len:1"`
 			}{},
 		},
 		{
-			checkErr: validateError(NewValidateError("Name", ErrInvalidLen)),
+			checkErr: validateError(NewValidateError("Name", ErrLenInvalid)),
 			obj: struct {
 				Name string `validate:"len:5"`
 			}{
@@ -54,7 +54,7 @@ func TestValidate_len(t *testing.T) {
 					"12345",
 				},
 			},
-			checkErr: validateError(NewValidateError("Names", ErrInvalidLen)),
+			checkErr: validateError(NewValidateError("Names", ErrLenInvalid)),
 		},
 	}
 
