@@ -1,12 +1,13 @@
 package hw10programoptimization
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"regexp"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type User struct {
@@ -41,7 +42,10 @@ func getUsers(r io.Reader) (result users, err error) {
 		return
 	}
 
-	var user User
+	var (
+		user User
+		json = jsoniter.ConfigCompatibleWithStandardLibrary
+	)
 
 	lines := strings.Split(string(content), "\n") // сильное выделение памяти
 	for i, line := range lines {
