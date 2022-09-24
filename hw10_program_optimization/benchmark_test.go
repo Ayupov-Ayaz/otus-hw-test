@@ -23,6 +23,7 @@ func makeUser(i int) User {
 		Address:  str,
 	}
 }
+
 func BenchmarkCountDomains(b *testing.B) {
 	const (
 		count = 100
