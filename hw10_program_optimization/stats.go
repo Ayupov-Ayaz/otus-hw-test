@@ -19,6 +19,10 @@ type User struct {
 	Address  string
 }
 
+func (u *User) Reset() {
+	*u = User{}
+}
+
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
@@ -32,18 +36,20 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 type users [100_000]User
 
 func getUsers(r io.Reader) (result users, err error) {
-	content, err := ioutil.ReadAll(r)
+	content, err := ioutil.ReadAll(r) // дорого
 	if err != nil {
 		return
 	}
 
-	lines := strings.Split(string(content), "\n")
+	var user User
+
+	lines := strings.Split(string(content), "\n") // сильное выделение памяти
 	for i, line := range lines {
-		var user User
 		if err = json.Unmarshal([]byte(line), &user); err != nil {
 			return
 		}
 		result[i] = user
+		user.Reset()
 	}
 	return
 }
@@ -51,13 +57,13 @@ func getUsers(r io.Reader) (result users, err error) {
 func countDomains(u users, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 
-	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
-		}
+	rg, err := regexp.Compile("\\." + domain)
+	if err != nil {
+		return nil, err
+	}
 
-		if matched {
+	for _, user := range u {
+		if rg.Match([]byte(user.Email)) {
 			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
 			num++
 			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
