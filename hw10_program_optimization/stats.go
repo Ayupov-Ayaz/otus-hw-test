@@ -67,10 +67,9 @@ func countDomains(u users, domain string) (DomainStat, error) {
 			break
 		}
 
-		if strings.Contains(user.Email, domain) {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
+		if strings.HasSuffix(user.Email, domain) {
+			key := strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])
+			result[key]++
 		}
 	}
 	return result, nil
