@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	ErrParseMinMaxCommandFailed   = errors.New("parse min max command failed")
 	ErrExtractMinMaxValueFailed   = errors.New("extract min max value failed")
 	ErrInvalidMaxCommandValueType = errors.New("invalid validation command 'max' type, exp Int")
 	ErrInvalidMinCommandValueType = errors.New("invalid validation command 'min' type, exp Int")
@@ -91,11 +90,7 @@ func validateMax(v reflect.Value, field, tag string) error {
 			return fmt.Errorf("exp int: %w", ErrInvalidMaxCommandValueType)
 		}
 
-		if err := extractAndCompareMax(value, field, tag); err != nil {
-			return err
-		}
-
-		return nil
+		return extractAndCompareMax(value, field, tag)
 	}
 
 	return ErrInvalidMaxCommandValueType
@@ -125,11 +120,7 @@ func validateMin(v reflect.Value, field, tag string) error {
 			return fmt.Errorf("exp int: %w", ErrInvalidMinCommandValueType)
 		}
 
-		if err := extractAndCompareMin(value, field, tag); err != nil {
-			return err
-		}
-
-		return nil
+		return extractAndCompareMin(value, field, tag)
 	}
 
 	return ErrInvalidMinCommandValueType
