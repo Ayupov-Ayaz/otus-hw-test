@@ -2,8 +2,12 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -36,25 +40,114 @@ type (
 	}
 )
 
-func TestValidate(t *testing.T) {
+func systemError(expErr error) func(gotErr error) bool {
+	return func(gotErr error) bool {
+		return errors.Is(gotErr, expErr)
+	}
+}
+
+func validateError(expErr ...ValidationError) func(gotErr error) bool {
+	return func(gotErr error) bool {
+		var vErrs ValidationErrors
+
+		if errors.As(gotErr, &vErrs) {
+			if len(vErrs) != len(expErr) {
+				return false
+			}
+
+			for i, err := range vErrs {
+				if err.Field != expErr[i].Field {
+					return false
+				}
+
+				if !errors.Is(err.Err, expErr[i].Err) {
+					return false
+				}
+			}
+
+			return true
+		}
+
+		return false
+	}
+}
+
+func TestValidateStructs(t *testing.T) {
 	tests := []struct {
-		in          interface{}
-		expectedErr error
+		checkErr func(err error) bool
+		obj      interface{}
 	}{
 		{
-			// Place your code here.
+			obj: User{
+				Name:  "sffs",
+				meta:  []byte(`{}`),
+				ID:    "123",
+				Age:   17,
+				Email: "email.gmail.com",
+				Role:  "user",
+				Phones: []string{
+					"12345678910",
+					"1234567890",
+				},
+			},
+			checkErr: validateError(
+				NewValidateError("ID", ErrLenInvalid),
+				NewValidateError("Age", ErrMinInvalid),
+				NewValidateError("Email", ErrRegexpInvalid),
+				NewValidateError("Role", ErrInInvalid),
+				NewValidateError("Phones", ErrLenInvalid),
+			),
 		},
-		// ...
-		// Place your code here.
+		{
+			obj: User{
+				ID: func() string {
+					var b strings.Builder
+					for i := 0; i < 36; i++ {
+						b.WriteString("*")
+					}
+					return b.String()
+				}(),
+				Age:   19,
+				Email: "email@gmail.com",
+				Role:  "admin",
+				Phones: []string{
+					"12345678901",
+					"19435678906",
+				},
+				meta: nil,
+			},
+			checkErr: systemError(nil),
+		},
+		{
+			checkErr: validateError(NewValidateError("Version", ErrLenInvalid)),
+			obj:      App{Version: "1234"},
+		},
+		{
+			obj: App{Version: "12345"},
+		},
+		{
+			obj: Token{},
+		},
+		{
+			checkErr: validateError(NewValidateError("Code", ErrInInvalid)),
+			obj: Response{
+				Code: 300,
+			},
+		},
+		{
+			checkErr: systemError(nil),
+			obj:      Response{Code: 200},
+		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			tt := tt
-			t.Parallel()
-
-			// Place your code here.
-			_ = tt
+			err := Validate(tt.obj)
+			if tt.checkErr != nil {
+				require.True(t, tt.checkErr(err))
+			} else {
+				require.Nil(t, err)
+			}
 		})
 	}
 }
