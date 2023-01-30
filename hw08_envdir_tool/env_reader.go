@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -29,12 +30,16 @@ func NewEnv(value string) EnvValue {
 	return EnvValue{Value: value, NeedRemove: needRemove}
 }
 
-func clearString(str string) string {
-	str = strings.Replace(str, " ", "", -1)
-	str = strings.Replace(str, "\t", "", -1)
-	str = strings.Replace(str, "\\0", "\n", -1) // todo: ??????
+func clearTerminalZeros(str string) string {
+	return strings.Split(string(bytes.Replace([]byte(str), []byte{0}, []byte("\n"), -1)), "\n")[0]
+}
 
-	return str
+func remove(str, remove string) string {
+	return strings.Replace(str, remove, "", -1)
+}
+
+func clearString(str string) string {
+	return clearTerminalZeros(remove(remove(remove(str, " "), "\t"), "\""))
 }
 
 func ReadFirstLineInFile(name string) (string, error) {
