@@ -67,7 +67,7 @@ func ReadFirstLineInFile(name string) (string, error) {
 func ReadDir(name string) (Environment, error) {
 	files, err := os.ReadDir(name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read dir = '%s' failed: %w", name, err)
 	}
 
 	resp := make(Environment, len(files))

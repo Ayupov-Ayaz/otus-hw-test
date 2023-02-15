@@ -1,5 +1,7 @@
 package main
 
 func main() {
-	// Place your code here.
+	if err := Execute(); err != nil {
+		panic(err)
+	}
 }
