@@ -41,7 +41,7 @@ type EnvValue struct {
 
 func NewEnv(value string) EnvValue {
 	var needRemove bool
-	if value == "" {
+	if strings.Trim(value, " ") == "" {
 		needRemove = true
 	}
 
@@ -49,7 +49,7 @@ func NewEnv(value string) EnvValue {
 }
 
 func clearTerminalZeros(str string) string {
-	return strings.Split(string(bytes.ReplaceAll([]byte(str), []byte{0}, []byte("\n"))), "\n")[0]
+	return string(bytes.ReplaceAll([]byte(str), []byte{0}, []byte("\n")))
 }
 
 func remove(str, remove string) string {
@@ -57,7 +57,7 @@ func remove(str, remove string) string {
 }
 
 func clearString(str string) string {
-	return clearTerminalZeros(remove(remove(remove(str, " "), "\t"), "\""))
+	return clearTerminalZeros(remove(str, "\t"))
 }
 
 func ReadFirstLineInFile(name string) (string, error) {

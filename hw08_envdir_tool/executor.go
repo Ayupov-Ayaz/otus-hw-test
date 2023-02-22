@@ -100,7 +100,9 @@ func Execute() error {
 		panic(err)
 	}
 
-	fmt.Println(RunCmd(args, envs))
+	if code := RunCmd(args, envs); code > 0 {
+		return fmt.Errorf("commad code is failed: %d", code)
+	}
 
 	return nil
 }

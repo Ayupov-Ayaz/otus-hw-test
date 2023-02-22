@@ -17,7 +17,8 @@ const (
 	//
 	bar   = "bar"
 	hello = "hello"
-	foo   = "foo\nwith new line"
+	foo   = `foo
+with new line`
 	added = "added"
 	user  = "tommy"
 )

@@ -16,10 +16,10 @@ func TestReadDir(t *testing.T) {
 
 	expEnvironments := Environment{
 		"BAR":   NewEnv("bar"),
-		"EMPTY": NewEnv(""),
-		"HELLO": NewEnv("hello"),
+		"EMPTY": NewEnv(" "),
+		"HELLO": NewEnv(`"hello"`),
 		"UNSET": NewEnv(""),
-		"FOO":   NewEnv("foo"),
+		"FOO":   NewEnv("   foo\nwith new line"),
 	}
 
 	tests := []struct {
@@ -68,7 +68,7 @@ func TestReadDir(t *testing.T) {
 				for k, expVal := range expEnvironments {
 					gotVal, ok := got[k]
 					require.True(t, ok, k)
-					require.Equal(t, expVal, gotVal)
+					require.Equal(t, expVal, gotVal, k)
 				}
 			}
 		})
