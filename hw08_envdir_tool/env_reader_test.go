@@ -38,6 +38,13 @@ func TestReadDir(t *testing.T) {
 			dirName:    "env_reader.go",
 		},
 		{
+			name: "value is invalid",
+			checkError: func(t *testing.T, err error) {
+				require.ErrorIs(t, err, ErrValueInvalid)
+			},
+			dirName: "testdata",
+		},
+		{
 			name:    "success",
 			dirName: "testdata/env",
 			withEnv: true,

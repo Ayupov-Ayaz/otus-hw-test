@@ -13,6 +13,26 @@ var (
 	ErrValueInvalid = errors.New("env value invalid")
 )
 
+type Filter func(fileName string) bool
+
+func equalFilter(exp string) Filter {
+	return func(fileName string) bool {
+		return fileName == exp
+	}
+}
+
+func fileFormatFilter(exp string) Filter {
+	return func(fileName string) bool {
+		return strings.HasSuffix(fileName, exp)
+	}
+}
+
+var fileFilters = []Filter{
+	equalFilter(".DS_Store"),
+	fileFormatFilter(".go"),
+	fileFormatFilter(".sh"),
+}
+
 type Environment map[string]EnvValue
 
 // EnvValue helps to distinguish between empty files and files with the first empty line.
@@ -62,12 +82,22 @@ func ReadFirstLineInFile(name string) (string, error) {
 	return resp, scanner.Err()
 }
 
+func skip(fileName string) bool {
+	for _, filter := range fileFilters {
+		if filter(fileName) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ReadDir reads a specified directory and returns map of env variables.
 // Variables represented as files where filename is name of variable, file first line is a value.
 func ReadDir(name string) (Environment, error) {
 	files, err := os.ReadDir(name)
 	if err != nil {
-		return nil, fmt.Errorf("read dir = '%s' failed: %w", name, err)
+		return nil, err
 	}
 
 	resp := make(Environment, len(files))
@@ -75,6 +105,10 @@ func ReadDir(name string) (Environment, error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			fileName := file.Name()
+			if skip(fileName) {
+				continue
+			}
+
 			value, err := ReadFirstLineInFile(name + "/" + fileName)
 			if err != nil {
 				return nil, err
