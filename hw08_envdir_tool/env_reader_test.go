@@ -9,8 +9,9 @@ import (
 
 func TestReadDir(t *testing.T) {
 	pathErr := func(t *testing.T, err error) {
-		_, ok := err.(*fs.PathError)
-		require.True(t, ok)
+		t.Helper()
+		var exp *fs.PathError
+		require.ErrorAs(t, err, &exp)
 	}
 
 	expEnvironments := Environment{
@@ -40,6 +41,7 @@ func TestReadDir(t *testing.T) {
 		{
 			name: "value is invalid",
 			checkError: func(t *testing.T, err error) {
+				t.Helper()
 				require.ErrorIs(t, err, ErrValueInvalid)
 			},
 			dirName: "testdata",
@@ -49,6 +51,7 @@ func TestReadDir(t *testing.T) {
 			dirName: "testdata/env",
 			withEnv: true,
 			checkError: func(t *testing.T, err error) {
+				t.Helper()
 				require.Nil(t, err)
 			},
 		},

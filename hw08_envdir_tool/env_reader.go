@@ -9,9 +9,7 @@ import (
 	"strings"
 )
 
-var (
-	ErrValueInvalid = errors.New("env value invalid")
-)
+var ErrValueInvalid = errors.New("env value invalid")
 
 type Filter func(fileName string) bool
 
@@ -51,11 +49,11 @@ func NewEnv(value string) EnvValue {
 }
 
 func clearTerminalZeros(str string) string {
-	return strings.Split(string(bytes.Replace([]byte(str), []byte{0}, []byte("\n"), -1)), "\n")[0]
+	return strings.Split(string(bytes.ReplaceAll([]byte(str), []byte{0}, []byte("\n"))), "\n")[0]
 }
 
 func remove(str, remove string) string {
-	return strings.Replace(str, remove, "", -1)
+	return strings.ReplaceAll(str, remove, "")
 }
 
 func clearString(str string) string {
@@ -120,7 +118,6 @@ func ReadDir(name string) (Environment, error) {
 
 			resp[fileName] = NewEnv(value)
 		}
-
 	}
 
 	return resp, nil
