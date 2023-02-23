@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -101,23 +102,25 @@ func ReadDir(name string) (Environment, error) {
 	resp := make(Environment, len(files))
 
 	for _, file := range files {
-		if !file.IsDir() {
-			fileName := file.Name()
-			if skip(fileName) {
-				continue
-			}
-
-			value, err := ReadFirstLineInFile(name + "/" + fileName)
-			if err != nil {
-				return nil, err
-			}
-
-			if strings.Contains(value, "=") {
-				return nil, ErrValueInvalid
-			}
-
-			resp[fileName] = NewEnv(value)
+		if file.IsDir() {
+			continue
 		}
+
+		fileName := file.Name()
+		if skip(fileName) {
+			continue
+		}
+
+		value, err := ReadFirstLineInFile(path.Join(name, fileName))
+		if err != nil {
+			return nil, err
+		}
+
+		if strings.Contains(value, "=") {
+			return nil, ErrValueInvalid
+		}
+
+		resp[fileName] = NewEnv(value)
 	}
 
 	return resp, nil
