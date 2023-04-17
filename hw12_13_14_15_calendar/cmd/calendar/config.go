@@ -1,49 +1,40 @@
 package main
 
-import "strconv"
+import (
+	"strconv"
 
-// При желании конфигурацию можно вынести в internal/config.
-// Организация конфига в main принуждает нас сужать API компонентов, использовать
-// при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
+	"github.com/caarlos0/env/v8"
+)
+
+const envPrefix = "CALENDAR_"
+
 type Config struct {
-	Logger LoggerConf
-	HTTP   HTTPServerConf
-	// TODO
-}
-
-func DefaultConfig() Config {
-	return Config{
-		Logger: DefaultLoggerConf(),
-		HTTP:   DefaultHTTPServerConf(),
-	}
+	Logger LoggerConf     `envPrefix:"LOGGER_"`
+	HTTP   HTTPServerConf `envPrefix:"HTTP_"`
 }
 
 type LoggerConf struct {
-	Level string
-}
-
-func DefaultLoggerConf() LoggerConf {
-	return LoggerConf{
-		Level: "debug",
-	}
+	Level string ` env:"LEVEL" envDefault:"debug"`
 }
 
 type HTTPServerConf struct {
-	Port int
-}
-
-func DefaultHTTPServerConf() HTTPServerConf {
-	return HTTPServerConf{
-		Port: 8080,
-	}
+	Port int ` env:"PORT" envDefault:"8080"`
 }
 
 func (c HTTPServerConf) PortToString() string {
 	return strconv.Itoa(c.Port)
 }
 
-func NewConfig() Config {
-	cfg := DefaultConfig()
-	// todo: unmarshal environment variables
-	return cfg
+func NewConfig() (*Config, error) {
+	cfg := &Config{}
+
+	opts := env.Options{
+		Prefix: envPrefix,
+	}
+
+	if err := env.ParseWithOptions(cfg, opts); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }

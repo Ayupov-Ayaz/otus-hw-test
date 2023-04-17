@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,16 +21,21 @@ func init() {
 	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
 }
 
-func main() {
+func run() error {
 	flag.Parse()
 
 	if flag.Arg(0) == "version" {
 		printVersion()
-		return
+		return nil
 	}
 
-	config := NewConfig()
+	config, err := NewConfig()
+	if err != nil {
+		return err
+	}
+
 	logg := logger.New(config.Logger.Level)
+	defer logg.Sync()
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
@@ -57,5 +63,13 @@ func main() {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic
+	}
+
+	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
 }
