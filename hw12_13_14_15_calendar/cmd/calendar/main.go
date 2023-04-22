@@ -17,8 +17,10 @@ import (
 
 var configFile string
 
+const defaultConfigFile = "/etc/calendar/config.toml"
+
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", defaultConfigFile, "Path to configuration file")
 }
 
 func run() error {

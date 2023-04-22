@@ -13,7 +13,6 @@ import (
 
 const (
 	envPrefix = "CALENDAR_"
-	yamlFile  = "./configs/config.yaml"
 )
 
 type Config struct {
@@ -43,7 +42,7 @@ func unmarshalYaml(data []byte) func(cfg *Config) error {
 	}
 }
 
-func unmarshalYamlFile() func(cfg *Config) error {
+func unmarshalYamlFile(yamlFile string) func(cfg *Config) error {
 	data, err := os.ReadFile(yamlFile)
 
 	if err != nil {
@@ -71,25 +70,18 @@ func unmarshalEnv(cfg *Config) error {
 	return env.ParseWithOptions(cfg, opts)
 }
 
-// unmarshalers - возвращает список функций,
-// которые будут вызваны для десериализации конфига
-// в порядке их объявления.
-// 1. YAML
-// 2. ENV
-func unmarshalers() []func(cfg *Config) error {
-	return []func(cfg *Config) error{
-		unmarshalYamlFile(),
-		unmarshalEnv,
-	}
-}
-
+// NewConfig returns a new Config.
+// 1. ENV
+// 2. YAML
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	for _, unmarshaler := range unmarshalers() {
-		if err := unmarshaler(cfg); err != nil {
-			return nil, err
-		}
+	if err := unmarshalEnv(cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal env: %w", err)
+	}
+
+	if err := unmarshalYamlFile(configFile)(cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal yaml: %w", err)
 	}
 
 	return cfg, nil
