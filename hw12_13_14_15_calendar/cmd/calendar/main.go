@@ -9,10 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
 var configFile string
@@ -39,7 +40,14 @@ func run() error {
 	logg := logger.New(config.Logger.Level)
 	defer logg.Sync()
 
-	storage := memorystorage.New()
+	logg.Info("using config file", zap.String("path", configFile))
+	logg.Info("using storage", zap.String("driver", config.Storage.Driver))
+
+	storage, err := NewStorage(config.Storage)
+	if err != nil {
+		return err
+	}
+
 	calendar := app.New(logg, storage)
 
 	server := internalhttp.NewServer(logg, calendar)

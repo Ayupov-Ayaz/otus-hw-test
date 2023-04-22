@@ -16,8 +16,9 @@ const (
 )
 
 type Config struct {
-	Logger LoggerConf     `envPrefix:"LOGGER_"`
-	HTTP   HTTPServerConf `envPrefix:"HTTP_"`
+	Logger  LoggerConf     `envPrefix:"LOGGER_"`
+	HTTP    HTTPServerConf `envPrefix:"HTTP_"`
+	Storage StorageConf    `envPrefix:"STORAGE_"`
 }
 
 type LoggerConf struct {

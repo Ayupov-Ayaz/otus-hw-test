@@ -1,0 +1,14 @@
+logger:
+  level: debug
+http:
+    port: 8080
+storage:
+  name: "calendar"
+  driver: "mysql"
+  host: "localhost"
+  port: 3306
+  user: ""
+  password: ""
+  db: "calendar"
+  timeouts:
+    read: 5s
