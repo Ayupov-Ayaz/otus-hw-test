@@ -32,3 +32,15 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 .PHONY: build run build-img run-img version test lint
+
+user ?= user
+pwd ?= pwd
+host ?= localhost
+port ?= 3306
+dsn = "mysql://${user}:${pwd}@tcp(${host}:${port})/calendar"
+
+migrate-up:
+	migrate -path ./migrations -database ${dsn} up
+
+migrate-down:
+	migrate -path ./migrations -database ${dsn} down
