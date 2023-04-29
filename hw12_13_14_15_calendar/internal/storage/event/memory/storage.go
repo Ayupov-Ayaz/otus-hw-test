@@ -38,8 +38,7 @@ func (s *Storage) Update(_ context.Context, event entity.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.getEvent(event.ID)
-	if !ok {
+	if _, ok := s.getEvent(event.ID); !ok {
 		return storage.ErrEventNotFound
 	}
 
@@ -64,8 +63,7 @@ func (s *Storage) Delete(_ context.Context, id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	_, ok := s.getEvent(id)
-	if !ok {
+	if _, ok := s.getEvent(id); !ok {
 		return storage.ErrEventNotFound
 	}
 

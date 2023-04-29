@@ -6,9 +6,7 @@ import (
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
 )
 
-var (
-	ErrEventNotFound = errors.New("event not found")
-)
+var ErrEventNotFound = errors.New("event not found")
 
 type Event interface {
 	Create(ctx context.Context, event entity.Event) (id int64, err error)

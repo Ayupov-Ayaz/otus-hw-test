@@ -8,7 +8,7 @@ build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
 run: build
-	$(BIN) -config ./configs/config.toml
+	$(BIN) -config ./configs/config.yaml
 
 build-img:
 	docker build \
@@ -46,6 +46,9 @@ migrate-up:
 
 migrate-down:
 	migrate -path ./migrations -database ${dsn} down
+
+unit-test:
+	go test --race ./...
 
 integration-test:
 	TEST_USER=${user} TEST_PWD=${pwd} go test --tags=integration ./...

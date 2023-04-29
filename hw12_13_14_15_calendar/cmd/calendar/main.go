@@ -10,12 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/http"
 )
+
+const version = "v1.0.0"
 
 var configFile string
 
@@ -39,7 +42,9 @@ func run() error {
 	}
 
 	logg := logger.New(config.Logger.Level)
-	defer logg.Sync()
+	defer func() {
+		_ = logg.Sync()
+	}()
 
 	logg.Info("using config file", zap.String("path", configFile))
 	logg.Info("using storage", zap.String("driver", config.Storage.Driver))
@@ -51,10 +56,9 @@ func run() error {
 
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(logg, calendar, version)
 
-	ctx, cancel := signal.NotifyContext(context.Background(),
-		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
 	go func() {
@@ -70,7 +74,7 @@ func run() error {
 
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx); err != nil {
+	if err := server.Start(ctx, config.HTTP.Addr()); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic

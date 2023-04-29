@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 }
 
 func getConnection(t *testing.T) *sqlx.DB {
-	return test.GetMysqlConnection(t, testDSN)
+	return test.MysqlConnection(t, testDSN)
 }
 
 func createUser(t *testing.T, db *sqlx.DB) entity.User {

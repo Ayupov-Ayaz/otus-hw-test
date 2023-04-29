@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -53,8 +52,8 @@ func getPort() string {
 	return port
 }
 
-// GetMysqlConnection - test connection to database
-func GetMysqlConnection(t *testing.T, dsn string) *sqlx.DB {
+// MysqlConnection - test connection to database.
+func MysqlConnection(t *testing.T, dsn string) *sqlx.DB {
 	t.Helper()
 
 	db, err := sqlx.Connect("mysql", dsn)

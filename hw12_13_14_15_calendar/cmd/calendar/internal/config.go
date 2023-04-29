@@ -41,15 +41,20 @@ type Config struct {
 }
 
 type LoggerConf struct {
-	Level string ` env:"LEVEL" envDefault:"debug"`
+	Level string `env:"LEVEL" envDefault:"debug"`
 }
 
 type HTTPServerConf struct {
-	Port int ` env:"PORT" envDefault:"8080"`
+	Host string `env:"HOST" envDefault:"localhost"`
+	Port int    `env:"PORT" envDefault:"8080"`
 }
 
 func (c HTTPServerConf) PortToString() string {
 	return strconv.Itoa(c.Port)
+}
+
+func (c HTTPServerConf) Addr() string {
+	return c.Host + ":" + c.PortToString()
 }
 
 func unmarshalYaml(data []byte) func(cfg *Config) error {
@@ -64,7 +69,6 @@ func unmarshalYaml(data []byte) func(cfg *Config) error {
 
 func unmarshalYamlFile(yamlFile string) func(cfg *Config) error {
 	data, err := os.ReadFile(yamlFile)
-
 	if err != nil {
 		return func(cfg *Config) error {
 			if errors.Is(err, os.ErrNotExist) {
@@ -91,8 +95,7 @@ func unmarshalEnv(cfg *Config) error {
 }
 
 // NewConfig returns a new Config.
-// 1. ENV
-// 2. YAML
+// order: ENV, YAML
 func NewConfig(configFile string) (*Config, error) {
 	cfg := &Config{}
 

@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
@@ -96,7 +97,7 @@ func (s *Repository) Get(ctx context.Context, id int64) (entity.Event, error) {
 		Scan(&event.ID, &event.Title, &event.UserID, &event.Description, &event.Time,
 			&duration, &notice)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			err = storage.ErrEventNotFound
 		}
 

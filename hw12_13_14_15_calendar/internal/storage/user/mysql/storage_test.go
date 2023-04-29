@@ -22,7 +22,7 @@ import (
 var testDSN = test.GetMysqlTestDSN()
 
 func getConnection(t *testing.T) *sqlx.DB {
-	return test.GetMysqlConnection(t, testDSN)
+	return test.MysqlConnection(t, testDSN)
 }
 
 func remove(t *testing.T, db *sqlx.DB, id int64) {

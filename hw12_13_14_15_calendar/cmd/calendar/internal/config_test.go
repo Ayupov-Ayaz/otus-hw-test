@@ -36,6 +36,7 @@ func TestUnmarshalEnv_WithCustomEnvironments(t *testing.T) {
 }
 
 func createYamlFile(t *testing.T, data string) *os.File {
+	t.Helper()
 	f, err := os.CreateTemp("./", "config.*.yaml")
 	require.NoError(t, err)
 

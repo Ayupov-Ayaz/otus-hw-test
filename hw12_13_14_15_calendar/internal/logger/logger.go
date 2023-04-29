@@ -24,8 +24,10 @@ func parseLevel(level string) zapcore.Level {
 func New(level string) *zap.Logger {
 	encoderCfg := zapcore.EncoderConfig{
 		MessageKey:     "msg",
-		LevelKey:       "level",
+		LevelKey:       "lvl",
 		NameKey:        "logger",
+		TimeKey:        "dt",
+		CallerKey:      "caller",
 		EncodeLevel:    zapcore.LowercaseLevelEncoder,
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
