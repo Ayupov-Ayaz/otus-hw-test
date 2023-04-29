@@ -1,26 +1,34 @@
 package main
 
-import "time"
-
-const (
-	MySQL  = "mysql"
-	Memory = "memory"
+import (
+	"fmt"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
+	"github.com/jmoiron/sqlx"
 )
 
-type Timeouts struct {
-	Read time.Duration `env:"READ_TIMEOUT" envDefault:"5s" yaml:"read"`
-}
+func NewStorage(config internal.StorageConf) (*storage.Storage, error) {
+	var (
+		db  *sqlx.DB
+		err error
+	)
 
-type StorageConf struct {
-	Driver   string   `env:"DRIVER" yaml:"driver" envDefault:"memory"`
-	User     string   `env:"USER" yaml:"user"`
-	Password string   `env:"PASSWORD" yaml:"password"`
-	DB       string   `env:"Storage" yaml:"db"`
-	Host     string   `env:"HOST" envDefault:"localhost" yaml:"host"`
-	Port     int      `env:"PORT" envDefault:"3306" yaml:"port"`
-	Timeouts Timeouts `envPrefix:"TIMEOUTS_" yaml:"timeouts"`
-}
+	if !config.IsMemoryStorage() {
+		db, err = internal.ConnectToDB(config)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-func (s StorageConf) IsMemoryStorage() bool {
-	return s.Driver == Memory
+	event, err := internal.NewEventStorage(config.Driver, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create event storage: %w", err)
+	}
+
+	user, err := internal.NewUserStorage(config.Driver, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user storage: %w", err)
+	}
+
+	return storage.NewStorage(event, user, db), nil
 }

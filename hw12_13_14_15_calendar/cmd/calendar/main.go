@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
 	"log"
 	"os"
 	"os/signal"
@@ -32,7 +33,7 @@ func run() error {
 		return nil
 	}
 
-	config, err := NewConfig()
+	config, err := internal.NewConfig(configFile)
 	if err != nil {
 		return err
 	}

@@ -10,15 +10,16 @@ var (
 	ErrEventNotFound = errors.New("event not found")
 )
 
-type EventRepository interface {
-	Create(ctx context.Context, event entity.Event) (id int, err error)
-	Update(ctx context.Context, id int, event entity.Event) error
-	Delete(ctx context.Context, id int) error
-	Get(ctx context.Context, id int) (entity.Event, error)
+type Event interface {
+	Create(ctx context.Context, event entity.Event) (id int64, err error)
+	Update(ctx context.Context, event entity.Event) error
+	Delete(ctx context.Context, id int64) error
+	Get(ctx context.Context, id int64) (entity.Event, error)
 }
 
-type UserRepository interface {
-	Create(ctx context.Context, user entity.User) (id int, err error)
+type User interface {
+	Create(ctx context.Context, user entity.User) (id int64, err error)
+	Get(ctx context.Context, id int64) (*entity.User, error)
 }
 
 type Closer interface {
@@ -26,21 +27,31 @@ type Closer interface {
 }
 
 type Storage struct {
-	event  EventRepository
+	event  Event
+	user   User
 	closer Closer
 }
 
-func NewStorage(event EventRepository, closer Closer) *Storage {
+func NewStorage(event Event, user User, closer Closer) *Storage {
 	return &Storage{
 		event:  event,
+		user:   user,
 		closer: closer,
 	}
 }
 
-func (s *Storage) Event() EventRepository {
+func (s *Storage) Event() Event {
 	return s.event
 }
 
+func (s *Storage) User() User {
+	return s.user
+}
+
 func (s *Storage) Close() error {
-	return s.closer.Close()
+	if s.closer != nil {
+		return s.closer.Close()
+	}
+
+	return nil
 }

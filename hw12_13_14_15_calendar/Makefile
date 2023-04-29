@@ -37,10 +37,15 @@ user ?= user
 pwd ?= pwd
 host ?= localhost
 port ?= 3306
-dsn = "mysql://${user}:${pwd}@tcp(${host}:${port})/calendar"
+db ?= calendar
+
+dsn = "mysql://${user}:${pwd}@tcp(${host}:${port})/${db}"
 
 migrate-up:
 	migrate -path ./migrations -database ${dsn} up
 
 migrate-down:
 	migrate -path ./migrations -database ${dsn} down
+
+integration-test:
+	TEST_USER=${user} TEST_PWD=${pwd} go test --tags=integration ./...
