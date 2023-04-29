@@ -2,8 +2,9 @@ package memory
 
 import (
 	"context"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
 	"sync"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
 
 type Storage struct {

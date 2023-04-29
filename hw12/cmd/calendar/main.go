@@ -3,19 +3,20 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal"
+
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/app"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/logger"
+	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/server/http"
 )
 
 const version = "v1.0.0"

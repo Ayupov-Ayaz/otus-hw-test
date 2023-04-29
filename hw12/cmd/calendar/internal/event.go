@@ -2,9 +2,10 @@ package internal
 
 import (
 	"fmt"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
-	memoryStorage "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/event/memory"
-	mysqlStorage "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/event/mysql"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
+	memoryStorage "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event/memory"
+	mysqlStorage "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event/mysql"
 	"github.com/jmoiron/sqlx"
 )
 

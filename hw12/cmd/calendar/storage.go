@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/jmoiron/sqlx"
 )
 

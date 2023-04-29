@@ -7,16 +7,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/test"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/user/mysql"
+	"strconv"
+	"testing"
+	"time"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/test"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/user/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strconv"
-	"testing"
-	"time"
 )
 
 var testDSN = test.GetMysqlTestDSN()
