@@ -19,7 +19,6 @@ func (s *Storage) Create(ctx context.Context, user entity.User) (id int64, err e
 	result, err := s.db.ExecContext(ctx, "INSERT INTO users (name) VALUES (?)",
 		user.Username,
 	)
-
 	if err != nil {
 		return 0, err
 	}

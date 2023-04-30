@@ -3,10 +3,11 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 )
 
 const (

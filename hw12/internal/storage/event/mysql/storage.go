@@ -42,7 +42,6 @@ func New(db *sqlx.DB) *Repository {
 func (s *Repository) Create(ctx context.Context, event entity.Event) (id int64, err error) {
 	result, err := s.db.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time,
 		event.DurationInSeconds(), event.BeforeStartNoticeInSeconds())
-
 	if err != nil {
 		return 0, fmt.Errorf("failed to create event: %w", err)
 	}
@@ -109,5 +108,4 @@ func (s *Repository) Get(ctx context.Context, id int64) (entity.Event, error) {
 	event.BeforeStartNotice = time.Duration(notice) * time.Second
 
 	return event, nil
-
 }

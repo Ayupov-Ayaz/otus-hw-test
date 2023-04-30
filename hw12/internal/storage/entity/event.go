@@ -13,7 +13,8 @@ type Event struct {
 }
 
 func NewEvent(title string, description string, userID int64,
-	time time.Time, duration time.Duration, beforeStartNotice time.Duration) Event {
+	time time.Time, duration time.Duration, beforeStartNotice time.Duration,
+) Event {
 	return Event{
 		Description:       description,
 		Title:             title,

@@ -196,7 +196,6 @@ func TestEventRepository_Update(t *testing.T) {
 			require.ErrorIs(t, err, tt.err)
 		})
 	}
-
 }
 
 func TestEventRepository_Delete(t *testing.T) {
@@ -237,5 +236,4 @@ func TestEventRepository_Delete(t *testing.T) {
 			require.ErrorIs(t, err, tt.err)
 		})
 	}
-
 }

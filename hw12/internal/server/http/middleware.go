@@ -1,9 +1,10 @@
 package internalhttp
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
-	"time"
 )
 
 func LogRequestMiddleware(logger *zap.Logger) fiber.Handler {
