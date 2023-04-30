@@ -13,6 +13,7 @@ import (
 	store "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/test"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 )

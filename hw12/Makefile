@@ -23,7 +23,7 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race ./internal/... ./pkg/...
+	go test -race ./...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.41.1
@@ -46,9 +46,6 @@ migrate-up:
 
 migrate-down:
 	migrate -path ./migrations -database ${dsn} down
-
-unit-test:
-	go test --race ./...
 
 integration-test:
 	TEST_USER=${user} TEST_PWD=${pwd} go test --tags=integration ./...
