@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"gopkg.in/yaml.v3"
+	yaml3 "gopkg.in/yaml.v3"
 
-	"github.com/caarlos0/env/v8"
+	env8 "github.com/caarlos0/env/v8"
 )
 
 const (
@@ -59,7 +59,7 @@ func (c HTTPServerConf) Addr() string {
 
 func unmarshalYaml(data []byte) func(cfg *Config) error {
 	return func(cfg *Config) error {
-		if err := yaml.Unmarshal(data, cfg); err != nil {
+		if err := yaml3.Unmarshal(data, cfg); err != nil {
 			return fmt.Errorf("failed to unmarshal yaml: %w", err)
 		}
 
@@ -87,11 +87,11 @@ func unmarshalYamlFile(yamlFile string) func(cfg *Config) error {
 }
 
 func unmarshalEnv(cfg *Config) error {
-	opts := env.Options{
+	opts := env8.Options{
 		Prefix: envPrefix,
 	}
 
-	return env.ParseWithOptions(cfg, opts)
+	return env8.ParseWithOptions(cfg, opts)
 }
 
 // NewConfig returns a new Config.

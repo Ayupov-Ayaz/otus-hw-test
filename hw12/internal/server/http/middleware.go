@@ -3,12 +3,12 @@ package internalhttp
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	goFiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-func LogRequestMiddleware(logger *zap.Logger) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
+func LogRequestMiddleware(logger *zap.Logger) goFiber.Handler {
+	return func(ctx *goFiber.Ctx) error {
 		start := time.Now()
 
 		if err := ctx.Next(); err != nil {

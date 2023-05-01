@@ -3,14 +3,14 @@ package internalhttp
 import (
 	"context"
 
-	"github.com/gofiber/fiber/v2"
+	goFiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
 type Server struct {
 	app    Application
 	logger *zap.Logger
-	f      *fiber.App
+	f      *goFiber.App
 }
 
 type Application interface { // TODO
@@ -39,6 +39,6 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.f.ShutdownWithContext(ctx)
 }
 
-func (s *Server) HelloWorld(ctx *fiber.Ctx) error {
+func (s *Server) HelloWorld(ctx *goFiber.Ctx) error {
 	return ctx.SendString("Hello, World 👋!")
 }
