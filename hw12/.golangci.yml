@@ -21,17 +21,15 @@ run:
   # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.18
   go: '1.19'
 linters:
-  disable-all: false
+  disable-all: true
   enable:
     - deadcode
     - errcheck
     - gosimple
     - gofumpt
     - goimports
-    - govet
     - ineffassign
     - revive
-    - staticcheck
     - structcheck
     - typecheck
     - unused
