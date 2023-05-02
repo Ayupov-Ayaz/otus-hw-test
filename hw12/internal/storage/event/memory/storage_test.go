@@ -2,16 +2,17 @@ package memory
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func makeEvent() entity.Event {
 	return entity.NewEvent("title", "desc",
-		12, time.Now(), 2*time.Second, 5*time.Second)
+		12, time.Now(), 2*time.Second, []time.Duration{5 * time.Second})
 }
 
 func TestStorage_Create(t *testing.T) {

@@ -37,24 +37,6 @@ func getConnection(t *testing.T) *sqlx.DB {
 	return test.MysqlConnection(t, testDSN)
 }
 
-func createUser(t *testing.T, db *sqlx.DB) entity.User {
-	userName := strconv.Itoa(time.Now().Nanosecond())
-	res, err := db.Exec("INSERT INTO users (name) VALUES (?)", userName)
-	require.NoError(t, err, "create user failed")
-	id, err := res.LastInsertId()
-	require.NoError(t, err, "get last insert id failed")
-
-	return entity.NewUser(id, userName)
-}
-
-func deleteUserByUserName(t *testing.T, db *sqlx.DB, userName string) {
-	res, err := db.Exec("DELETE FROM users WHERE name = ?", userName)
-	require.NoError(t, err, "delete user failed")
-	rows, err := res.RowsAffected()
-	require.NoError(t, err)
-	require.Equal(t, int64(1), rows, "user not deleted")
-}
-
 func deleteEvent(t *testing.T, db *sqlx.DB, id int64) {
 	res, err := db.Exec(deleteQuery, id)
 	require.NoError(t, err)
@@ -65,7 +47,7 @@ func deleteEvent(t *testing.T, db *sqlx.DB, id int64) {
 
 func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
 	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.Time,
-		e.DurationInSeconds(), e.BeforeStartNoticeInSeconds())
+		e.DurationInSeconds())
 	require.NoError(t, err)
 	id, err := res.LastInsertId()
 	require.NoError(t, err)
@@ -76,9 +58,8 @@ func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
 
 func makeEvent(userID int64) entity.Event {
 	duration := 5 * time.Second
-	beforeDuration := 10 * time.Second
 	title := strconv.Itoa(time.Now().Nanosecond())
-	return entity.NewEvent(title, "desc", userID, dateTime, duration, beforeDuration)
+	return entity.NewEvent(title, "desc", userID, dateTime, duration, nil)
 }
 
 func TestEventRepository_Create(t *testing.T) {
@@ -88,13 +69,8 @@ func TestEventRepository_Create(t *testing.T) {
 		require.NoError(t, db.Close())
 	}()
 
-	user := createUser(t, db)
-	defer func() {
-		deleteUserByUserName(t, db, user.Username)
-	}()
-
 	storage := New(db)
-	id, err := storage.Create(context.Background(), makeEvent(user.ID))
+	id, err := storage.Create(context.Background(), makeEvent(1))
 	require.NoError(t, err)
 	require.NotZero(t, id)
 
@@ -107,12 +83,7 @@ func TestEventRepository_Get(t *testing.T) {
 		require.NoError(t, db.Close())
 	}()
 
-	user := createUser(t, db)
-	defer func() {
-		deleteUserByUserName(t, db, user.Username)
-	}()
-
-	expEvent := makeEvent(user.ID)
+	expEvent := makeEvent(1)
 	id := createEvent(t, db, expEvent)
 	defer func() {
 		deleteEvent(t, db, id)
@@ -154,12 +125,7 @@ func TestEventRepository_Update(t *testing.T) {
 		require.NoError(t, db.Close())
 	}()
 
-	user := createUser(t, db)
-	defer func() {
-		deleteUserByUserName(t, db, user.Username)
-	}()
-
-	event := makeEvent(user.ID)
+	event := makeEvent(1)
 	id := createEvent(t, db, event)
 	defer func() {
 		deleteEvent(t, db, id)
@@ -168,7 +134,6 @@ func TestEventRepository_Update(t *testing.T) {
 	event.Title = "1"
 	event.Description = "2"
 	event.Duration = 19 * time.Second
-	event.BeforeStartNotice = 20 * time.Second
 	event.Time = dateTime.Add(1 * time.Hour)
 
 	storage := New(db)
@@ -205,12 +170,7 @@ func TestEventRepository_Delete(t *testing.T) {
 		require.NoError(t, db.Close())
 	}()
 
-	user := createUser(t, db)
-	defer func() {
-		deleteUserByUserName(t, db, user.Username)
-	}()
-
-	event := makeEvent(user.ID)
+	event := makeEvent(1)
 	id := createEvent(t, db, event)
 
 	storage := New(db)

@@ -16,35 +16,24 @@ type Event interface {
 	Get(ctx context.Context, id int64) (entity.Event, error)
 }
 
-type User interface {
-	Create(ctx context.Context, user entity.User) (id int64, err error)
-	Get(ctx context.Context, id int64) (*entity.User, error)
-}
-
 type Closer interface {
 	Close() error
 }
 
 type Storage struct {
 	event  Event
-	user   User
 	closer Closer
 }
 
-func NewStorage(event Event, user User, closer Closer) *Storage {
+func NewStorage(event Event, closer Closer) *Storage {
 	return &Storage{
 		event:  event,
-		user:   user,
 		closer: closer,
 	}
 }
 
 func (s *Storage) Event() Event {
 	return s.event
-}
-
-func (s *Storage) User() User {
-	return s.user
 }
 
 func (s *Storage) Close() error {

@@ -26,10 +26,5 @@ func NewStorage(config internal.StorageConf) (*storage.Storage, error) {
 		return nil, fmt.Errorf("failed to create event storage: %w", err)
 	}
 
-	user, err := internal.NewUserStorage(config.Driver, db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create user storage: %w", err)
-	}
-
-	return storage.NewStorage(event, user, db), nil
+	return storage.NewStorage(event, db), nil
 }
