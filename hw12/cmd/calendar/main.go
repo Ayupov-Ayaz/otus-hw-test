@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/validator"
+
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -55,7 +57,15 @@ func run() error {
 		return err
 	}
 
-	calendar := app.New(logg, storage)
+	defer func() {
+		if err := storage.Close(); err != nil {
+			logg.Error("failed to close storage: " + err.Error())
+		}
+	}()
+
+	calendar := app.New(logg,
+		app.WithStorage(storage.Event()),
+		app.WithValidator(validator.New()))
 
 	server := internalhttp.NewServer(logg, calendar, version)
 

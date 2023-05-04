@@ -31,16 +31,20 @@ var (
 	deleteQuery = "DELETE FROM events WHERE id = ?"
 )
 
-type Repository struct {
+// todo: СписокСобытийНаНеделю (дата начала недели)
+// todo: СписокСобытийНaМесяц (дата начала месяца)
+// todo: СписокСобытийНаДень (дата)
+
+type Storage struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) *Repository {
-	return &Repository{db: db}
+func New(db *sqlx.DB) *Storage {
+	return &Storage{db: db}
 }
 
-func (s *Repository) Create(ctx context.Context, event entity.Event) (id int64, err error) {
-	result, err := s.db.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time,
+func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err error) {
+	result, err := s.db.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time.Time(),
 		event.DurationInSeconds())
 	if err != nil {
 		return 0, fmt.Errorf("failed to create event: %w", err)
@@ -67,8 +71,8 @@ func checkExecResult(result sql.Result) error {
 	return nil
 }
 
-func (s *Repository) Update(ctx context.Context, event entity.Event) error {
-	result, err := s.db.ExecContext(ctx, updateQuery, event.Title, event.Description, event.Time,
+func (s *Storage) Update(ctx context.Context, event entity.Event) error {
+	result, err := s.db.ExecContext(ctx, updateQuery, event.Title, event.Description, event.Time.Time(),
 		event.DurationInSeconds(), event.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update event: %w", err)
@@ -77,7 +81,7 @@ func (s *Repository) Update(ctx context.Context, event entity.Event) error {
 	return checkExecResult(result)
 }
 
-func (s *Repository) Delete(ctx context.Context, id int64) error {
+func (s *Storage) Delete(ctx context.Context, id int64) error {
 	result, err := s.db.ExecContext(ctx, deleteQuery, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete event: %w", err)
@@ -86,12 +90,15 @@ func (s *Repository) Delete(ctx context.Context, id int64) error {
 	return checkExecResult(result)
 }
 
-func (s *Repository) Get(ctx context.Context, id int64) (entity.Event, error) {
+func (s *Storage) Get(ctx context.Context, id int64) (entity.Event, error) {
 	event := entity.Event{}
-	var duration int
+	var (
+		duration int
+		dateTime time.Time
+	)
 
 	err := s.db.QueryRowxContext(ctx, getQuery, id).
-		Scan(&event.ID, &event.Title, &event.UserID, &event.Description, &event.Time, &duration)
+		Scan(&event.ID, &event.Title, &event.UserID, &event.Description, &dateTime, &duration)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			err = storage.ErrEventNotFound
@@ -100,8 +107,8 @@ func (s *Repository) Get(ctx context.Context, id int64) (entity.Event, error) {
 		return entity.Event{}, fmt.Errorf("failed to get event: %w", err)
 	}
 
-	event.Duration = time.Duration(duration) * time.Second
-	//event.BeforeStartNotice = time.Duration(notice) * time.Second
+	event.Duration = entity.NewSecondsDuration(duration)
+	event.Time = entity.MyTime(dateTime)
 
 	return event, nil
 }

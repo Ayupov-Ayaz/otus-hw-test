@@ -3,17 +3,22 @@ package internalhttp
 import (
 	"context"
 
+	jsoniter "github.com/json-iterator/go"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
+
 	goFiber "github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
+
+type Application interface {
+	CreateEvent(ctx context.Context, e entity.Event) error
+}
 
 type Server struct {
 	app    Application
 	logger *zap.Logger
 	f      *goFiber.App
-}
-
-type Application interface { // TODO
 }
 
 func NewServer(logger *zap.Logger, app Application, version string) *Server {
@@ -25,7 +30,8 @@ func NewServer(logger *zap.Logger, app Application, version string) *Server {
 		f:      fiberApp,
 	}
 
-	fiberApp.Get("/hello", srv.HelloWorld)
+	group := fiberApp.Group("/event")
+	group.Post("/", srv.CreateEvent)
 
 	return srv
 }
@@ -39,6 +45,18 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.f.ShutdownWithContext(ctx)
 }
 
-func (s *Server) HelloWorld(ctx *goFiber.Ctx) error {
-	return ctx.SendString("Hello, World 👋!")
+func (s *Server) CreateEvent(ctx *goFiber.Ctx) error {
+	var event entity.Event
+	if err := jsoniter.Unmarshal(ctx.Body(), &event); err != nil {
+		s.logger.Error("failed to unmarshal event",
+			zap.ByteString("body", ctx.Body()),
+			zap.Error(err))
+		return err
+	}
+
+	if err := s.app.CreateEvent(ctx.Context(), event); err != nil {
+		return err
+	}
+
+	return ctx.SendStatus(goFiber.StatusCreated)
 }

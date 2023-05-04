@@ -1,19 +1,17 @@
 package entity
 
-import "time"
-
 type Event struct {
-	ID            int64
-	Description   string
-	Title         string        `required:"true"`
-	UserID        int64         `required:"true"`
-	Time          time.Time     `required:"true"`
-	Duration      time.Duration `required:"true"`
-	Notifications []time.Duration
+	ID            int64      `json:"-"`
+	Title         string     `json:"title" validate:"required"`
+	Description   string     `json:"description"`
+	UserID        int64      `json:"user_id" validate:"required"`
+	Time          MyTime     `json:"time" validate:"required"`
+	Duration      Duration   `json:"duration" validate:"required"`
+	Notifications []Duration `json:"notifications" validate:"required,min=1"`
 }
 
 func NewEvent(title string, description string, userID int64,
-	time time.Time, duration time.Duration, notifications []time.Duration,
+	time MyTime, duration Duration, notifications []Duration,
 ) Event {
 	return Event{
 		Description:   description,
@@ -26,5 +24,5 @@ func NewEvent(title string, description string, userID int64,
 }
 
 func (e Event) DurationInSeconds() int {
-	return int(e.Duration.Seconds())
+	return e.Duration.DurationInSec()
 }

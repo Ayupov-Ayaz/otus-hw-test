@@ -12,7 +12,8 @@ import (
 
 func makeEvent() entity.Event {
 	return entity.NewEvent("title", "desc",
-		12, time.Now(), 2*time.Second, []time.Duration{5 * time.Second})
+		12, entity.MyTime(time.Now()), entity.Duration(2*time.Second),
+		[]entity.Duration{entity.NewSecondsDuration(5)})
 }
 
 func TestStorage_Create(t *testing.T) {

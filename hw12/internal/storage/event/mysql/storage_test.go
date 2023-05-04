@@ -20,16 +20,19 @@ import (
 
 var (
 	testDSN  string
-	dateTime time.Time
+	dateTime entity.MyTime
 )
 
 func TestMain(m *testing.M) {
 	testDSN = test.GetMysqlTestDSN()
 	var err error
-	dateTime, err = time.Parse(time.RFC3339, "2021-01-01T00:00:00Z")
+	dt, err := time.Parse(time.RFC3339, "2021-01-01T00:00:00Z")
 	if err != nil {
 		panic(err)
 	}
+
+	dateTime = entity.MyTime(dt)
+
 	os.Exit(m.Run())
 }
 
@@ -46,7 +49,7 @@ func deleteEvent(t *testing.T, db *sqlx.DB, id int64) {
 }
 
 func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
-	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.Time,
+	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.Time.Time(),
 		e.DurationInSeconds())
 	require.NoError(t, err)
 	id, err := res.LastInsertId()
@@ -57,7 +60,7 @@ func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
 }
 
 func makeEvent(userID int64) entity.Event {
-	duration := 5 * time.Second
+	duration := entity.NewSecondsDuration(5)
 	title := strconv.Itoa(time.Now().Nanosecond())
 	return entity.NewEvent(title, "desc", userID, dateTime, duration, nil)
 }
@@ -133,8 +136,8 @@ func TestEventRepository_Update(t *testing.T) {
 
 	event.Title = "1"
 	event.Description = "2"
-	event.Duration = 19 * time.Second
-	event.Time = dateTime.Add(1 * time.Hour)
+	event.Duration = entity.NewSecondsDuration(19)
+	event.Time = entity.MyTime(dateTime.Time().Add(1 * time.Hour))
 
 	storage := New(db)
 
