@@ -72,7 +72,3 @@ func (s *Storage) Delete(_ context.Context, id int64) error {
 
 	return nil
 }
-
-func (s *Storage) Ping(_ context.Context) error {
-	return nil
-}

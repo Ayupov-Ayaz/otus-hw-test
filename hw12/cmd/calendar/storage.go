@@ -3,28 +3,49 @@ package main
 import (
 	"fmt"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event"
+
+	config "github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal/configs/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/connect"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 )
 
-func NewStorage(config internal.StorageConf) (*storage.Storage, error) {
-	var (
-		db  *sqlx.DB
-		err error
-	)
-
-	if !config.IsMemoryStorage() {
-		db, err = internal.ConnectToDB(config)
-		if err != nil {
-			return nil, err
-		}
+func getConnect(config config.Config) (resp func() *sqlx.DB, err error) {
+	if config.Driver == "memory" {
+		return func() *sqlx.DB { return nil }, nil
 	}
 
-	event, err := internal.NewEventStorage(config.Driver, db)
+	cfg := connect.Config{
+		Driver:   config.Driver,
+		User:     config.User,
+		Password: config.Password,
+		DB:       config.DB,
+		Host:     config.Host,
+		Port:     config.Port,
+		Timeouts: connect.Timeouts{Read: config.Timeouts.Read},
+	}
+
+	var db *sqlx.DB
+	db, err = connect.New(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return func() *sqlx.DB { return db }, nil
+}
+
+func NewStorage(config config.Config) (*storage.Storage, error) {
+	connection, err := getConnect(config)
+	if err != nil {
+		return nil, err
+	}
+
+	eventStorage, err := event.New(config.Driver, connection())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create event storage: %w", err)
 	}
 
-	return storage.NewStorage(event, db), nil
+	return storage.NewStorage(eventStorage, connection()), nil
 }

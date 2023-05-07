@@ -1,4 +1,4 @@
-package internal
+package event
 
 import (
 	"fmt"
@@ -9,7 +9,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func NewEventStorage(driver string, db *sqlx.DB) (storage.Event, error) {
+const (
+	MySQL  = "mysql"
+	Memory = "memory"
+)
+
+func New(driver string, db *sqlx.DB) (storage.Event, error) {
 	var resp storage.Event
 
 	switch driver {
