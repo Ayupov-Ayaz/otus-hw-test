@@ -19,8 +19,6 @@ import (
 	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/server/http"
 )
 
-const version = "v1.0.0"
-
 var configFile string
 
 const defaultConfigFile = "/etc/calendar/config.toml"
@@ -57,7 +55,7 @@ func run() error {
 
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar, version)
+	server := internalhttp.NewServer(logg, calendar, release)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
