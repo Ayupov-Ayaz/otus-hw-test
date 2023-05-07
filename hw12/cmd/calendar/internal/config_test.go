@@ -8,31 +8,47 @@ import (
 )
 
 func TestUnmarshalEnv_WithDefaultConfigs(t *testing.T) {
-	cfg := &Config{}
-	err := unmarshalEnv(cfg)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	require.Equal(t, 8080, cfg.HTTP.Port)
-	require.Equal(t, "debug", cfg.Logger.Level)
-}
-
-func TestUnmarshalEnv_WithCustomEnvironments(t *testing.T) {
-	envs := map[string]string{
-		"CALENDAR_HTTP_PORT":    "8081",
-		"CALENDAR_LOGGER_LEVEL": "info",
+	tests := []struct {
+		name    string
+		err     error
+		envs    map[string]string
+		checker func(t *testing.T, cfg *Config)
+	}{
+		{
+			name: "with default configs",
+			err:  nil,
+			checker: func(t *testing.T, cfg *Config) {
+				require.Equal(t, 8080, cfg.HTTP.Port)
+				require.Equal(t, "debug", cfg.Logger.Level)
+			},
+		},
+		{
+			name: "unmarshal with custom envs",
+			err:  nil,
+			envs: map[string]string{
+				"CALENDAR_HTTP_PORT":    "8081",
+				"CALENDAR_LOGGER_LEVEL": "info",
+			},
+			checker: func(t *testing.T, cfg *Config) {
+				require.Equal(t, 8081, cfg.HTTP.Port)
+				require.Equal(t, "info", cfg.Logger.Level)
+			},
+		},
 	}
 
-	for k, v := range envs {
-		require.NoError(t, os.Setenv(k, v))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.envs {
+				require.NoError(t, os.Setenv(k, v))
+			}
+
+			cfg := &Config{}
+			err := unmarshalEnv(cfg)
+			require.ErrorIs(t, err, tt.err)
+			require.NotNil(t, cfg)
+			tt.checker(t, cfg)
+		})
 	}
-
-	require.Equal(t, "8081", os.Getenv("CALENDAR_HTTP_PORT"))
-
-	cfg := &Config{}
-	err := unmarshalEnv(cfg)
-	require.NoError(t, err)
-	require.Equal(t, 8081, cfg.HTTP.Port)
-	require.Equal(t, "info", cfg.Logger.Level)
 }
 
 func createYamlFile(t *testing.T, data string) *os.File {

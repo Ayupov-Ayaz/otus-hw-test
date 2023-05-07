@@ -4,7 +4,6 @@ http:
     host: localhost
     port: 8080
 storage:
-  name: "calendar"
   driver: "mysql"
   host: "localhost"
   port: 3306
