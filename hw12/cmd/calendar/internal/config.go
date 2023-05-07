@@ -30,10 +30,6 @@ type StorageConf struct {
 	Timeouts Timeouts `envPrefix:"TIMEOUTS_" yaml:"timeouts"`
 }
 
-func (s StorageConf) IsMemoryStorage() bool {
-	return s.Driver == Memory
-}
-
 type Config struct {
 	Logger  LoggerConf     `envPrefix:"LOGGER_"`
 	HTTP    HTTPServerConf `envPrefix:"HTTP_"`
