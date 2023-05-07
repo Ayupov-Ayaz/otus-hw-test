@@ -1,25 +1,40 @@
-package internal
+package connect
 
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 )
 
 const (
-	MySQL  = "mysql"
-	Memory = "memory"
+	MySQL = "mysql"
 )
 
-func MysqlDSN(config StorageConf) string {
+type Config struct {
+	Driver   string
+	User     string
+	Password string
+	DB       string
+	Host     string
+	Port     int
+	Timeouts Timeouts
+}
+
+type Timeouts struct {
+	Read time.Duration
+}
+
+func mysqlDSN(config Config) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
 		config.User, config.Password, config.Host, config.Port, config.DB)
 }
 
-func ConnectToDB(config StorageConf) (db *sqlx.DB, err error) {
+func New(config Config) (db *sqlx.DB, err error) {
 	switch config.Driver {
 	case MySQL:
-		db, err = sqlx.Open(MySQL, MysqlDSN(config))
+		db, err = sqlx.Open(MySQL, mysqlDSN(config))
 	default:
 		err = fmt.Errorf("unknown driver: %s", config.Driver)
 	}
