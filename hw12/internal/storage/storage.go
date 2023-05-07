@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"io"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
@@ -16,16 +17,12 @@ type Event interface {
 	Get(ctx context.Context, id int64) (entity.Event, error)
 }
 
-type Closer interface {
-	Close() error
-}
-
 type Storage struct {
 	event  Event
-	closer Closer
+	closer io.Closer
 }
 
-func NewStorage(event Event, closer Closer) *Storage {
+func NewStorage(event Event, closer io.Closer) *Storage {
 	return &Storage{
 		event:  event,
 		closer: closer,
