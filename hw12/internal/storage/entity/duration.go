@@ -13,6 +13,10 @@ func NewSecondsDuration(seconds int) Duration {
 	return Duration(time.Duration(seconds) * time.Second)
 }
 
+func NewDuration(duration time.Duration) Duration {
+	return Duration(duration)
+}
+
 func (d Duration) DurationInSec() int {
 	return int(time.Duration(d).Seconds())
 }

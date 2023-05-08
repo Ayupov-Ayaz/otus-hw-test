@@ -3,6 +3,8 @@ package event
 import (
 	"fmt"
 
+	"go.uber.org/zap"
+
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	memoryStorage "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event/memory"
 	mysqlStorage "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event/mysql"
@@ -14,12 +16,12 @@ const (
 	Memory = "memory"
 )
 
-func New(driver string, db *sqlx.DB) (storage.Event, error) {
+func New(driver string, db *sqlx.DB, logger *zap.Logger) (storage.Event, error) {
 	var resp storage.Event
 
 	switch driver {
 	case MySQL:
-		resp = mysqlStorage.New(db)
+		resp = mysqlStorage.New(db, logger)
 	case Memory:
 		resp = memoryStorage.New()
 	default:

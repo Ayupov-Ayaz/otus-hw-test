@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/jmoiron/sqlx"
@@ -36,15 +38,32 @@ var (
 // todo: СписокСобытийНаДень (дата)
 
 type Storage struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	logger *zap.Logger
 }
 
-func New(db *sqlx.DB) *Storage {
-	return &Storage{db: db}
+func New(db *sqlx.DB, logger *zap.Logger) *Storage {
+	return &Storage{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err error) {
-	result, err := s.db.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time.Time(),
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				s.logger.Error("failed to rollback transaction", zap.Error(rollbackErr))
+			}
+		}
+	}()
+
+	result, err := tx.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time.Time(),
 		event.DurationInSeconds())
 	if err != nil {
 		return 0, fmt.Errorf("failed to create event: %w", err)
@@ -53,6 +72,15 @@ func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err
 	id, err = result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
+	notificationQuery := createNotificationQuery(id, event.Notifications)
+	if _, err := tx.ExecContext(ctx, notificationQuery); err != nil {
+		return 0, fmt.Errorf("failed to create notifications: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return id, nil

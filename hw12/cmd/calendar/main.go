@@ -50,7 +50,7 @@ func run() error {
 	logg.Info("using config file", zap.String("path", configFile))
 	logg.Info("using storage", zap.String("driver", config.Storage.Driver))
 
-	storage, err := NewStorage(config.Storage)
+	storage, err := NewStorage(config.Storage, logg)
 	if err != nil {
 		return err
 	}
