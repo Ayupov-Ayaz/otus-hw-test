@@ -14,25 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const (
-	titleField       = "title"
-	descriptionField = "description"
-	userIDField      = "user_id"
-	timeField        = "time"
-	durationField    = "duration_sec"
-	noticeField      = "before_start_notice_sec"
-)
-
-var (
-	createQuery = fmt.Sprintf("INSERT INTO events (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?)",
-		titleField, userIDField, descriptionField, timeField, durationField)
-	updateQuery = fmt.Sprintf("UPDATE events SET %s = ?, %s = ?, %s = ?, %s = ? WHERE id = ?",
-		titleField, descriptionField, timeField, durationField)
-	getQuery = fmt.Sprintf("SELECT id, %s, %s, %s, %s, %s FROM events WHERE id = ?",
-		titleField, userIDField, descriptionField, timeField, durationField)
-	deleteQuery = "DELETE FROM events WHERE id = ?"
-)
-
 // todo: СписокСобытийНаНеделю (дата начала недели)
 // todo: СписокСобытийНaМесяц (дата начала месяца)
 // todo: СписокСобытийНаДень (дата)
@@ -40,6 +21,7 @@ var (
 type Storage struct {
 	db     *sqlx.DB
 	logger *zap.Logger
+	qb     QueryBuilder
 }
 
 func New(db *sqlx.DB, logger *zap.Logger) *Storage {
@@ -47,6 +29,21 @@ func New(db *sqlx.DB, logger *zap.Logger) *Storage {
 		db:     db,
 		logger: logger,
 	}
+}
+
+func (s *Storage) rollbackTx(tx *sql.Tx) {
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+		s.logger.Error("failed to rollback transaction", zap.Error(rollbackErr))
+	}
+}
+
+func (s *Storage) createNotifications(ctx context.Context, tx *sql.Tx, eventID int64, notifications []entity.Duration) error {
+	notificationQuery := s.qb.createNotificationQuery(eventID, notifications)
+	if _, err := tx.ExecContext(ctx, notificationQuery); err != nil {
+		return fmt.Errorf("failed to create notifications: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err error) {
@@ -57,14 +54,13 @@ func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err
 
 	defer func() {
 		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				s.logger.Error("failed to rollback transaction", zap.Error(rollbackErr))
-			}
+			s.rollbackTx(tx)
 		}
 	}()
 
-	result, err := tx.ExecContext(ctx, createQuery, event.Title, event.UserID, event.Description, event.Time.Time(),
-		event.DurationInSeconds())
+	result, err := tx.ExecContext(ctx,
+		"INSERT INTO events (title, description, time, duration_sec, user_id) VALUES (?, ?, ?, ?, ?)",
+		event.Title, event.Description, event.Time.MySQLFormat(), event.Duration.DurationInSec(), event.UserID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create event: %w", err)
 	}
@@ -74,9 +70,8 @@ func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err
 		return 0, fmt.Errorf("failed to get last insert id: %w", err)
 	}
 
-	notificationQuery := createNotificationQuery(id, event.Notifications)
-	if _, err := tx.ExecContext(ctx, notificationQuery); err != nil {
-		return 0, fmt.Errorf("failed to create notifications: %w", err)
+	if err := s.createNotifications(ctx, tx, id, event.Notifications); err != nil {
+		return 0, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -99,18 +94,69 @@ func checkExecResult(result sql.Result) error {
 	return nil
 }
 
-func (s *Storage) Update(ctx context.Context, event entity.Event) error {
-	result, err := s.db.ExecContext(ctx, updateQuery, event.Title, event.Description, event.Time.Time(),
-		event.DurationInSeconds(), event.ID)
+func (s *Storage) deleteNotifications(ctx context.Context, tx *sql.Tx, eventID int64) error {
+	_, err := tx.ExecContext(ctx, "DELETE FROM notifications WHERE event_id = ?", eventID)
 	if err != nil {
-		return fmt.Errorf("failed to update event: %w", err)
+		return fmt.Errorf("delete eventID=%d notifications failed: %w", eventID, err)
 	}
 
-	return checkExecResult(result)
+	return nil
 }
 
-func (s *Storage) Delete(ctx context.Context, id int64) error {
-	result, err := s.db.ExecContext(ctx, deleteQuery, id)
+func (s *Storage) Update(ctx context.Context, event entity.Event) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			s.rollbackTx(tx)
+		}
+	}()
+
+	eventQuery, ok := s.qb.updateEventQuery(event)
+	if ok {
+		_, err := tx.ExecContext(ctx, eventQuery)
+		if err != nil {
+			return fmt.Errorf("failed to update event: %w", err)
+		}
+	}
+
+	if len(event.Notifications) > 0 {
+		if err := s.deleteNotifications(ctx, tx, event.ID); err != nil {
+			return err
+		}
+
+		if err := s.createNotifications(ctx, tx, event.ID, event.Notifications); err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit failed")
+	}
+
+	return nil
+}
+
+func (s *Storage) Delete(ctx context.Context, id int64) (err error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			s.rollbackTx(tx)
+		}
+	}()
+
+	if err := s.deleteNotifications(ctx, tx, id); err != nil {
+		return err
+	}
+
+	result, err := tx.ExecContext(ctx, "DELETE FROM events WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("failed to delete event: %w", err)
 	}
@@ -125,7 +171,7 @@ func (s *Storage) Get(ctx context.Context, id int64) (entity.Event, error) {
 		dateTime time.Time
 	)
 
-	err := s.db.QueryRowxContext(ctx, getQuery, id).
+	err := s.db.QueryRowxContext(ctx, "SELECT FROM events `id`, `title`, `user_id`, `description`, `time`, `duration_sec` WHERE id = ?", id).
 		Scan(&event.ID, &event.Title, &event.UserID, &event.Description, &dateTime, &duration)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

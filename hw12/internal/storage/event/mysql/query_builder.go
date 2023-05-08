@@ -7,12 +7,12 @@ import (
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
 
-const insertNotificationQuery = "INSERT INTO notifications (event_id, before_start_notice_sec) VALUES "
+type QueryBuilder struct{}
 
-func createNotificationQuery(eventID int64, notification []entity.Duration) string {
+func (QueryBuilder) createNotificationQuery(eventID int64, notification []entity.Duration) string {
 	var b strings.Builder
 	strEventID := strconv.FormatInt(eventID, 10)
-	b.WriteString(insertNotificationQuery)
+	b.WriteString("INSERT INTO notifications (event_id, before_start_notice_sec) VALUES ")
 	count := len(notification)
 	for i, n := range notification {
 		b.WriteString("(")
@@ -24,5 +24,51 @@ func createNotificationQuery(eventID int64, notification []entity.Duration) stri
 			b.WriteString(", ")
 		}
 	}
+	b.WriteString(";")
 	return b.String()
+}
+
+func (QueryBuilder) updateEventQuery(event entity.Event) (string, bool) {
+	var (
+		b    strings.Builder
+		open bool
+	)
+
+	b.WriteString("UPDATE events SET ")
+	add := func(field, value, wrap string) {
+		if open {
+			b.WriteString(", ")
+		}
+		open = true
+		b.WriteString(field)
+		b.WriteString(" = ")
+		if wrap != "" {
+			b.WriteString(wrap)
+		}
+		b.WriteString(value)
+		if wrap != "" {
+			b.WriteString(wrap)
+		}
+	}
+
+	if event.Title != "" {
+		add("title", event.Title, "'")
+	}
+	if event.Description != "" {
+		add("description", event.Description, "'")
+	}
+	if !event.Time.IsEmpty() {
+		add("time", event.Time.MySQLFormat(), "'")
+	}
+	if !event.Duration.IsEmpty() {
+		add("duration_sec", strconv.Itoa(event.Duration.DurationInSec()), "")
+	}
+	if event.UserID != 0 {
+		add("user_id", strconv.FormatInt(event.UserID, 10), "")
+	}
+
+	b.WriteString(" WHERE id = ")
+	b.WriteString(strconv.FormatInt(event.ID, 10))
+	b.WriteString(";")
+	return b.String(), open
 }

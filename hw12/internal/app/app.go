@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -80,7 +81,10 @@ func (e *EventUseCase) UpdateEvent(ctx context.Context, event entity.Event) erro
 		return ErrIDIsEmpty
 	}
 
-	if err := e.storage.Update(ctx, event); err != nil {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := e.storage.Update(ctxWithTimeout, event); err != nil {
 		e.logger.Error("failed to update event",
 			zap.Int64("id", event.ID),
 			zap.Error(err))

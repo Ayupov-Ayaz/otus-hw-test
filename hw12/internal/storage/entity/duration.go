@@ -21,6 +21,10 @@ func (d Duration) DurationInSec() int {
 	return int(time.Duration(d).Seconds())
 }
 
+func (d Duration) IsEmpty() bool {
+	return d.DurationInSec() == 0
+}
+
 func (d *Duration) UnmarshalJSON(b []byte) error {
 	var v interface{}
 	if err := jsoniter.Unmarshal(b, &v); err != nil {
