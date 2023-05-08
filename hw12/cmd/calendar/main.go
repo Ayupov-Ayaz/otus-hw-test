@@ -65,7 +65,8 @@ func run() error {
 		app.WithStorage(storage.Event()),
 		app.WithValidator(validator.New()))
 
-	server := internalhttp.NewServer(logg, calendar, release)
+	server := internalhttp.NewServer(logg, release)
+	server.Register(internalhttp.NewEventHandlers(logg, calendar))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()

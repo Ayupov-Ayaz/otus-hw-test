@@ -18,9 +18,7 @@ func errorHandler(logger *zap.Logger) func(ctx *goFiber.Ctx, err error) error {
 			logger.Error("marshaling failed", zap.Error(marshalErr))
 		}
 
-		if err := ctx.Status(goFiber.StatusInternalServerError).Send(data); err != nil {
-			logger.Error("sending response failed", zap.Error(err))
-		}
+		sendJson(ctx, goFiber.StatusBadRequest, data)
 
 		return nil
 	}
