@@ -16,7 +16,7 @@ type EventStorage interface {
 	Create(ctx context.Context, event entity.Event) (id int64, err error)
 	Update(ctx context.Context, event entity.Event) error
 	Delete(ctx context.Context, id int64) error
-	Get(ctx context.Context, id int64) (entity.Event, error)
+	GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error)
 }
 
 type Validator interface {
@@ -105,13 +105,28 @@ func (e *EventUseCase) DeleteEvent(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (e *EventUseCase) GetEvent(ctx context.Context, id int64) (event entity.Event, err error) {
-	event, err = e.storage.Get(ctx, id)
+func (e *EventUseCase) getEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
+	events, err := e.storage.GetEventsForDates(ctx, userID, start, end)
 	if err != nil {
-		e.logger.Error("failed to get event",
-			zap.Int64("id", id),
+		e.logger.Error("failed to get events for dates",
+			zap.Int64("userID", userID),
+			zap.Time("start", start),
+			zap.Time("end", end),
 			zap.Error(err))
+		return nil, err
 	}
 
-	return event, err
+	return events, nil
+}
+
+func (e *EventUseCase) GetEventsByDay(ctx context.Context, userID int64, date time.Time) ([]entity.Event, error) {
+	return e.getEventsForDates(ctx, userID, date, date.AddDate(0, 0, 1))
+}
+
+func (e *EventUseCase) GetEventsByWeek(ctx context.Context, userID int64, startDate time.Time) ([]entity.Event, error) {
+	return e.getEventsForDates(ctx, userID, startDate, startDate.AddDate(0, 0, 7))
+}
+
+func (e *EventUseCase) GetEventsByMonth(ctx context.Context, userID int64, startDate time.Time) ([]entity.Event, error) {
+	return e.getEventsForDates(ctx, userID, startDate, startDate.AddDate(0, 1, 0))
 }

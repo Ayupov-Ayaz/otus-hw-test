@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/stretchr/testify/require"
@@ -21,13 +22,22 @@ func TestQueryBuilder_createNotification(t *testing.T) {
 	require.Equal(t, exp, got)
 }
 
+func ParseTime(dateTime string) (entity.MyTime, error) {
+	t, err := time.Parse(time.RFC3339, dateTime)
+	if err != nil {
+		return entity.MyTime{}, err
+	}
+
+	return entity.NewMyTime(t), nil
+}
+
 func TestQueryBuilder_updateEvent(t *testing.T) {
 	const (
 		dateTime      = "2100-04-05T12:01:01Z"
 		mySqlDateTime = "2100-04-05 12:01:01"
 	)
 
-	dt, err := entity.ParseTime(dateTime)
+	dt, err := ParseTime(dateTime)
 	require.NoError(t, err)
 
 	dur := entity.NewSecondsDuration(23)
@@ -45,7 +55,7 @@ func TestQueryBuilder_updateEvent(t *testing.T) {
 				ID:          1,
 				Title:       "test",
 				Description: "test",
-				Time:        dt,
+				DateTime:    dt,
 				Duration:    dur,
 				UserID:      45,
 				Notifications: []entity.Duration{

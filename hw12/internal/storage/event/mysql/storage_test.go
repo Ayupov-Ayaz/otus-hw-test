@@ -49,7 +49,7 @@ func deleteEvent(t *testing.T, db *sqlx.DB, id int64) {
 }
 
 func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
-	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.Time.Time(),
+	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.DateTime.Time(),
 		e.DurationInSeconds())
 	require.NoError(t, err)
 	id, err := res.LastInsertId()
@@ -137,7 +137,7 @@ func TestEventRepository_Update(t *testing.T) {
 	event.Title = "1"
 	event.Description = "2"
 	event.Duration = entity.NewSecondsDuration(19)
-	event.Time = entity.MyTime(dateTime.Time().Add(1 * time.Hour))
+	event.DateTime = entity.MyTime(dateTime.Time().Add(1 * time.Hour))
 
 	storage := New(db)
 

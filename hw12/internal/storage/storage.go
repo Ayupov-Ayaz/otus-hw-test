@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
@@ -14,7 +15,7 @@ type Event interface {
 	Create(ctx context.Context, event entity.Event) (id int64, err error)
 	Update(ctx context.Context, event entity.Event) error
 	Delete(ctx context.Context, id int64) error
-	Get(ctx context.Context, id int64) (entity.Event, error)
+	GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error)
 }
 
 type Storage struct {

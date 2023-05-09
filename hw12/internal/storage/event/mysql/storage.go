@@ -14,10 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// todo: СписокСобытийНаНеделю (дата начала недели)
-// todo: СписокСобытийНaМесяц (дата начала месяца)
-// todo: СписокСобытийНаДень (дата)
-
 type Storage struct {
 	db     *sqlx.DB
 	logger *zap.Logger
@@ -60,7 +56,7 @@ func (s *Storage) Create(ctx context.Context, event entity.Event) (id int64, err
 
 	result, err := tx.ExecContext(ctx,
 		"INSERT INTO events (title, description, time, duration_sec, user_id) VALUES (?, ?, ?, ?, ?)",
-		event.Title, event.Description, event.Time.MySQLFormat(), event.Duration.DurationInSec(), event.UserID)
+		event.Title, event.Description, mySQLTimeFormat(event.DateTime.Time()), event.Duration.DurationInSec(), event.UserID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create event: %w", err)
 	}
@@ -171,7 +167,8 @@ func (s *Storage) Get(ctx context.Context, id int64) (entity.Event, error) {
 		dateTime time.Time
 	)
 
-	err := s.db.QueryRowxContext(ctx, "SELECT FROM events `id`, `title`, `user_id`, `description`, `time`, `duration_sec` WHERE id = ?", id).
+	err := s.db.QueryRowxContext(ctx, "SELECT FROM events `id`, `title`, `user_id`, `description`, `time`, "+
+		"`duration_sec` WHERE id = ?", id).
 		Scan(&event.ID, &event.Title, &event.UserID, &event.Description, &dateTime, &duration)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -182,7 +179,43 @@ func (s *Storage) Get(ctx context.Context, id int64) (entity.Event, error) {
 	}
 
 	event.Duration = entity.NewSecondsDuration(duration)
-	event.Time = entity.MyTime(dateTime)
+	event.DateTime = entity.MyTime(dateTime)
 
 	return event, nil
+}
+
+func (s *Storage) GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
+	rows, err := s.db.QueryxContext(ctx, "SELECT id, title, description, time, duration_sec FROM events WHERE user_id = ? "+
+		"AND time BETWEEN ? AND ?", userID, start, end)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			err = storage.ErrEventNotFound
+		}
+		return nil, err
+	}
+
+	var events []entity.Event
+	event := &entity.Event{}
+	for rows.Next() {
+		var (
+			duration int
+			dateTime string
+		)
+
+		if err := rows.Scan(&event.ID, &event.Title, &event.Description, &dateTime, &duration); err != nil {
+			return nil, fmt.Errorf("failed to scan event: %w", err)
+		}
+
+		event.Duration = entity.NewSecondsDuration(duration)
+		date, err := parseMySQLTime(dateTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse time: %w", err)
+		}
+
+		event.DateTime = entity.MyTime(date)
+		events = append(events, *event)
+		event.Reset()
+	}
+
+	return events, nil
 }

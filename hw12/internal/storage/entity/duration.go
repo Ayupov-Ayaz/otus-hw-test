@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -44,4 +45,8 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	default:
 		return errors.New("invalid duration")
 	}
+}
+
+func (d *Duration) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + strconv.Itoa(d.DurationInSec()) + `s"`), nil
 }

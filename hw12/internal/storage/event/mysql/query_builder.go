@@ -3,9 +3,20 @@ package mysql
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
+
+const mysqlLayout = "2006-01-02 15:04:05"
+
+func mySQLTimeFormat(time time.Time) string {
+	return time.Format(mysqlLayout)
+}
+
+func parseMySQLTime(str string) (time.Time, error) {
+	return time.Parse(mysqlLayout, str)
+}
 
 type QueryBuilder struct{}
 
@@ -57,8 +68,8 @@ func (QueryBuilder) updateEventQuery(event entity.Event) (string, bool) {
 	if event.Description != "" {
 		add("description", event.Description, "'")
 	}
-	if !event.Time.IsEmpty() {
-		add("time", event.Time.MySQLFormat(), "'")
+	if !event.DateTime.IsEmpty() {
+		add("time", mySQLTimeFormat(event.DateTime.Time()), "'")
 	}
 	if !event.Duration.IsEmpty() {
 		add("duration_sec", strconv.Itoa(event.Duration.DurationInSec()), "")

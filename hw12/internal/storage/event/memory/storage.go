@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 
@@ -71,4 +72,19 @@ func (s *Storage) Delete(_ context.Context, id int64) error {
 	delete(s.events, id)
 
 	return nil
+}
+
+func (s *Storage) GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
+	var resp []entity.Event
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, event := range s.events {
+		eventDate := event.EventDate()
+		if event.UserID == userID && eventDate.After(start) && eventDate.Before(end) {
+			resp = append(resp, event)
+		}
+	}
+
+	return resp, nil
 }
