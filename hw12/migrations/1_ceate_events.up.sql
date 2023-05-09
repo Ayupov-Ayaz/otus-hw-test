@@ -5,5 +5,6 @@ CREATE TABLE events (
     description TEXT NULL,
     time DATETIME NOT NULL,
     duration_sec INT NOT NULL,
+    before_notice_sec INT NOT NULL,
     PRIMARY KEY (id)
 );

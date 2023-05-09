@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	store "github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/test"
 	_ "github.com/go-sql-driver/mysql"
@@ -49,8 +48,8 @@ func deleteEvent(t *testing.T, db *sqlx.DB, id int64) {
 }
 
 func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
-	res, err := db.Exec(createQuery, e.Title, e.UserID, e.Description, e.DateTime.Time(),
-		e.DurationInSeconds())
+	res, err := db.Exec(createQuery, e.Title, e.Description, e.DateTime.Time(),
+		e.DurationInSeconds(), e.NotificationInSec(), e.UserID)
 	require.NoError(t, err)
 	id, err := res.LastInsertId()
 	require.NoError(t, err)
@@ -62,7 +61,8 @@ func createEvent(t *testing.T, db *sqlx.DB, e entity.Event) int64 {
 func makeEvent(userID int64) entity.Event {
 	duration := entity.NewSecondsDuration(5)
 	title := strconv.Itoa(time.Now().Nanosecond())
-	return entity.NewEvent(title, "desc", userID, dateTime, duration, nil)
+	notification := entity.NewSecondsDuration(100)
+	return entity.NewEvent(title, "desc", userID, dateTime, duration, notification)
 }
 
 func TestEventRepository_Create(t *testing.T) {
@@ -80,45 +80,48 @@ func TestEventRepository_Create(t *testing.T) {
 	deleteEvent(t, db, id)
 }
 
-func TestEventRepository_Get(t *testing.T) {
+func TestEventRepository_GetEventForDays(t *testing.T) {
+	const userID = 123
+
 	db := getConnection(t)
 	defer func() {
 		require.NoError(t, db.Close())
 	}()
 
-	expEvent := makeEvent(1)
-	id := createEvent(t, db, expEvent)
-	defer func() {
-		deleteEvent(t, db, id)
-	}()
+	expEvents := make([]entity.Event, 3)
+	for i := 0; i < 3; i++ {
+		expEvent := makeEvent(userID)
+		id := createEvent(t, db, expEvent)
+		expEvent.ID = id
+		expEvents[i] = expEvent
+	}
 
-	expEvent.ID = id
 	storage := New(db)
 
 	tests := []struct {
-		name string
-		id   int64
-		exp  entity.Event
-		err  error
+		name   string
+		userID int64
+		exp    []entity.Event
+		start  time.Time
+		end    time.Time
+		err    error
 	}{
 		{
-			name: "event not found",
-			id:   id + 1,
-			err:  store.ErrEventNotFound,
-		},
-		{
-			name: "success",
-			id:   id,
-			exp:  expEvent,
+			name:   "events not found",
+			userID: userID,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotEvent, err := storage.Get(context.Background(), tt.id)
+			gotEvent, err := storage.GetEventsForDates(context.Background(), tt.userID, tt.start, tt.end)
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, tt.exp, gotEvent)
 		})
+	}
+
+	for _, e := range expEvents {
+		deleteEvent(t, db, e.ID)
 	}
 }
 
@@ -149,7 +152,7 @@ func TestEventRepository_Update(t *testing.T) {
 		{
 			name: "event not found",
 			id:   id + 1,
-			err:  store.ErrEventNotFound,
+			err:  ErrEventNotFound,
 		},
 		{
 			name: "success",
@@ -186,7 +189,7 @@ func TestEventRepository_Delete(t *testing.T) {
 		{
 			name: "event not found",
 			id:   id + 1,
-			err:  store.ErrEventNotFound,
+			err:  ErrEventNotFound,
 		},
 		{
 			name: "success",

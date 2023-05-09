@@ -74,6 +74,9 @@ func (QueryBuilder) updateEventQuery(event entity.Event) (string, bool) {
 	if !event.Duration.IsEmpty() {
 		add("duration_sec", strconv.Itoa(event.Duration.DurationInSec()), "")
 	}
+	if !event.Notification.IsEmpty() {
+		add("before_notice_sec", strconv.Itoa(event.Notification.DurationInSec()), "")
+	}
 	if event.UserID != 0 {
 		add("user_id", strconv.FormatInt(event.UserID, 10), "")
 	}

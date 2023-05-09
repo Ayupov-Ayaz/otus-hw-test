@@ -2,14 +2,11 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"io"
 	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 )
-
-var ErrEventNotFound = errors.New("event not found")
 
 type Event interface {
 	Create(ctx context.Context, event entity.Event) (id int64, err error)

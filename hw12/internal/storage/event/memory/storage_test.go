@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +12,7 @@ import (
 func makeEvent() entity.Event {
 	return entity.NewEvent("title", "desc",
 		12, entity.MyTime(time.Now()), entity.Duration(2*time.Second),
-		[]entity.Duration{entity.NewSecondsDuration(5)})
+		entity.NewSecondsDuration(5))
 }
 
 func TestStorage_Create(t *testing.T) {
@@ -46,7 +45,6 @@ func TestStorage_Update(t *testing.T) {
 	}{
 		{
 			name: "event not found",
-			err:  storage.ErrEventNotFound,
 		},
 		{
 			name: "success",
@@ -64,9 +62,15 @@ func TestStorage_Update(t *testing.T) {
 }
 
 func TestStorage_Get(t *testing.T) {
-	const id = 11
+	const (
+		id     = 11
+		userID = 134
+	)
 	e := makeEvent()
 	e.ID = id
+	e.UserID = userID
+
+	e.DateTime = entity.MyTime(time.Now())
 	store := New()
 	store.events[id] = e
 	ctx := context.Background()
@@ -74,24 +78,23 @@ func TestStorage_Get(t *testing.T) {
 	tests := []struct {
 		name string
 		id   int64
-		exp  entity.Event
+		exp  []entity.Event
 		err  error
 	}{
 		{
 			name: "event not found",
 			id:   12,
-			err:  storage.ErrEventNotFound,
 		},
 		{
 			name: "success",
-			id:   id,
-			exp:  e,
+			id:   userID,
+			exp:  []entity.Event{e},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := store.Get(ctx, tt.id)
+			got, err := store.GetEventsForDates(ctx, tt.id, time.Now(), time.Now().Add(24*time.Hour))
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, tt.exp, got)
 		})
@@ -114,7 +117,6 @@ func TestStorage_Delete(t *testing.T) {
 		{
 			name: "event not found",
 			id:   12,
-			err:  storage.ErrEventNotFound,
 		},
 		{
 			name: "success",

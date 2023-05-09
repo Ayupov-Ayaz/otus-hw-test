@@ -49,18 +49,16 @@ func TestQueryBuilder_updateEvent(t *testing.T) {
 	}{
 		{
 			exp: "UPDATE events SET title = 'test', description = 'test', time = '" +
-				mySqlDateTime + "', duration_sec = 23, user_id = 45 WHERE id = 1;",
+				mySqlDateTime + "', duration_sec = 23, before_notice_sec = 23, user_id = 45 WHERE id = 1;",
 			ok: true,
 			event: entity.Event{
-				ID:          1,
-				Title:       "test",
-				Description: "test",
-				DateTime:    dt,
-				Duration:    dur,
-				UserID:      45,
-				Notifications: []entity.Duration{
-					entity.NewSecondsDuration(23),
-				},
+				ID:           1,
+				Title:        "test",
+				Description:  "test",
+				DateTime:     dt,
+				Duration:     dur,
+				UserID:       45,
+				Notification: entity.NewSecondsDuration(23),
 			},
 		},
 		{

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
-
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
 )
 
 type Storage struct {
@@ -38,53 +36,35 @@ func (s *Storage) Create(_ context.Context, event entity.Event) (id int64, err e
 
 func (s *Storage) Update(_ context.Context, event entity.Event) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if _, ok := s.getEvent(event.ID); !ok {
-		return storage.ErrEventNotFound
+	if _, ok := s.getEvent(event.ID); ok {
+		s.events[event.ID] = event
 	}
-
-	s.events[event.ID] = event
+	s.mu.Unlock()
 
 	return nil
-}
-
-func (s *Storage) Get(_ context.Context, id int64) (entity.Event, error) {
-	s.mu.RLock()
-	event, ok := s.getEvent(id)
-	s.mu.RUnlock()
-
-	if !ok {
-		return event, storage.ErrEventNotFound
-	}
-
-	return event, nil
 }
 
 func (s *Storage) Delete(_ context.Context, id int64) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if _, ok := s.getEvent(id); !ok {
-		return storage.ErrEventNotFound
-	}
-
 	delete(s.events, id)
+	s.mu.Unlock()
 
 	return nil
 }
 
-func (s *Storage) GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
+func (s *Storage) GetEventsForDates(_ context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
 	var resp []entity.Event
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	for _, event := range s.events {
-		eventDate := event.EventDate()
-		if event.UserID == userID && eventDate.After(start) && eventDate.Before(end) {
+		eventDate := event.EventDate().YearDay()
+
+		if event.UserID == userID &&
+			eventDate >= start.YearDay() &&
+			eventDate <= end.YearDay() {
 			resp = append(resp, event)
 		}
 	}
+	s.mu.RUnlock()
 
 	return resp, nil
 }
