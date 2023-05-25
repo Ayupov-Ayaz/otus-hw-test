@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/event"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/event"
 
-	config "github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal/configs/storage"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/connect"
+	config "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/connect"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
 )
 
 func getConnect(config config.Config) (resp func() *sqlx.DB, err error) {

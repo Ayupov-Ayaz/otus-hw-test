@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
 )
 
 const mysqlLayout = "2006-01-02 15:04:05"

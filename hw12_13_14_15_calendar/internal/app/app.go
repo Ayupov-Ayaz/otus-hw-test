@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/internal/storage/entity"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/entity"
 )
 
 var ErrIDIsEmpty = errors.New("event id is empty")

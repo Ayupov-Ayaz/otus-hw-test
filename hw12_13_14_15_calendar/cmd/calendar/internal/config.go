@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal/configs/logger"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/logger"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal/configs/http"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12/cmd/calendar/internal/configs/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/http"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/storage"
 
 	yaml3 "gopkg.in/yaml.v3"
 
