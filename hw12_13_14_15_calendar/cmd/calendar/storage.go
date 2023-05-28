@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/event"
 
 	config "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/connect"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
 )
 
 func getConnect(config config.Config) (resp func() *sqlx.DB, err error) {
@@ -36,7 +34,7 @@ func getConnect(config config.Config) (resp func() *sqlx.DB, err error) {
 	return func() *sqlx.DB { return db }, nil
 }
 
-func NewStorage(config config.Config) (*storage.Storage, error) {
+func NewStorage(config config.Config) (storage.Event, error) {
 	connection, err := getConnect(config)
 	if err != nil {
 		return nil, err
@@ -47,5 +45,5 @@ func NewStorage(config config.Config) (*storage.Storage, error) {
 		return nil, fmt.Errorf("failed to create event storage: %w", err)
 	}
 
-	return storage.NewStorage(eventStorage, connection()), nil
+	return eventStorage, nil
 }
