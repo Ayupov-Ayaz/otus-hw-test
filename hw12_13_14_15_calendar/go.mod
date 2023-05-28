@@ -1,4 +1,4 @@
-module github.com/ayupov-ayaz/otus-wh-test/hw12
+module github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar
 
 go 1.16
 
@@ -18,4 +18,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+	google.golang.org/grpc v1.55.0
+	google.golang.org/protobuf v1.30.0
 )

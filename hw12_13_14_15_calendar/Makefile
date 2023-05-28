@@ -49,3 +49,9 @@ migrate-down:
 
 integration-test:
 	TEST_USER=${user} TEST_PWD=${pwd} go test --tags=integration ./...
+
+.PHONY: generate
+generate:
+	protoc --proto_path=internal/server/grpc/proto/ \
+		--go_out=internal/server/grpc/proto/ \
+		--go-grpc_out=internal/server/grpc/proto/ internal/server/grpc/proto/event.proto

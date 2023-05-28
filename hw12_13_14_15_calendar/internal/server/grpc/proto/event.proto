@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "../api/";
+
+service EventService {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {}
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {}
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResponse) {}
+  rpc GetEventByDay(GetEventsRequest) returns (GetEventsResponse) {}
+  rpc GetEventByWeek(GetEventsRequest) returns (GetEventsResponse) {}
+  rpc GetEventByMonth(GetEventsRequest) returns (GetEventsResponse) {}
+}
+
+message Event {
+  optional int64 id = 1;
+  string title = 2;
+  string description = 3;
+  int64 user_id = 4;
+  google.protobuf.Timestamp time = 5;
+  google.protobuf.Duration duration = 6;
+  google.protobuf.Duration notification = 7;
+}
+
+message CreateEventRequest {
+  Event event = 1;
+}
+
+message CreateEventResponse {
+  int64 id = 1;
+}
+
+
+message UpdateEventRequest {
+  Event event = 1;
+}
+
+message UpdateEventResponse {}
+
+message GetEventsRequest {
+  int64 user_id = 1;
+  google.protobuf.Timestamp time = 2;
+}
+
+message GetEventsResponse {
+  repeated Event events = 1;
+}
+
+message DeleteEventRequest {
+  int64 id = 1;
+}
+
+message DeleteEventResponse {}
+

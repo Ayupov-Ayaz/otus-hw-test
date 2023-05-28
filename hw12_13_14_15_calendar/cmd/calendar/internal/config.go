@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/grpc"
 	"os"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/logger"
@@ -22,6 +23,7 @@ const (
 type Config struct {
 	Logger  logger.Config  `envPrefix:"LOGGER_"`
 	HTTP    http.Config    `envPrefix:"HTTP_"`
+	GRPC    grpc.Config    `envPrefix:"GRPC_"`
 	Storage storage.Config `envPrefix:"STORAGE_"`
 }
 

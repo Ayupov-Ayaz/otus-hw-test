@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/validator"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/validator"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
 
@@ -18,12 +17,14 @@ import (
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/http"
 )
 
 var configFile string
 
-const defaultConfigFile = "/etc/calendar/config.toml"
+const (
+	defaultConfigFile = "/etc/calendar/config.toml"
+	shutdownTimeout   = time.Second * 3
+)
 
 func init() {
 	flag.StringVar(&configFile, "config", defaultConfigFile, "Path to configuration file")
@@ -55,40 +56,28 @@ func run() error {
 		return err
 	}
 
-	defer func() {
-		if err := storage.Close(); err != nil {
-			logg.Error("failed to close storage: " + err.Error())
-		}
-	}()
-
 	calendar := app.New(logg,
-		app.WithStorage(storage.Event()),
+		app.WithStorage(storage),
 		app.WithValidator(validator.New()))
 
-	server := internalhttp.NewServer(logg, release)
-	server.Register(internalhttp.NewEventHandlers(logg, calendar))
-
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	notifyCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	go func() {
-		<-ctx.Done()
+	stopHTTP, err := startHTTP(notifyCtx, calendar, logg, config.HTTP.Addr())
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed to start http server: %w", err)
+	}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
-	}()
+	stopGRPC, err := startGRPC(calendar, logg, config.GRPC.Addr())
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed to start grpc server: %w", err)
+	}
 
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx, config.HTTP.Addr()); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
-	}
+	shutdown(notifyCtx, logg, stopHTTP, stopGRPC)
 
 	return nil
 }
