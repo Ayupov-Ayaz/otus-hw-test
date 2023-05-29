@@ -52,6 +52,4 @@ integration-test:
 
 .PHONY: generate
 generate:
-	protoc --proto_path=internal/server/grpc/proto/ \
-		--go_out=internal/server/grpc/proto/ \
-		--go-grpc_out=internal/server/grpc/proto/ internal/server/grpc/proto/event.proto
+	go generate ./...
