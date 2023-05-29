@@ -56,10 +56,7 @@ func run() error {
 		return err
 	}
 
-	calendar := app.New(logg,
-		app.WithStorage(storage),
-		app.WithValidator(validator.New()))
-
+	calendar := app.New(validator.New(), storage, logg)
 	notifyCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 

@@ -31,27 +31,11 @@ type EventUseCase struct {
 
 type Config func(*EventUseCase)
 
-func New(logger *zap.Logger, configs ...Config) *EventUseCase {
-	app := &EventUseCase{
-		logger: logger,
-	}
-
-	for _, cfg := range configs {
-		cfg(app)
-	}
-
-	return app
-}
-
-func WithValidator(v Validator) Config {
-	return func(e *EventUseCase) {
-		e.validator = v
-	}
-}
-
-func WithStorage(s EventStorage) Config {
-	return func(e *EventUseCase) {
-		e.storage = s
+func New(validator Validator, storage EventStorage, logger *zap.Logger) *EventUseCase {
+	return &EventUseCase{
+		storage:   storage,
+		validator: validator,
+		logger:    logger,
 	}
 }
 
