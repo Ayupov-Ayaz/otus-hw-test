@@ -16,7 +16,7 @@ jobs:
       - name: Extract branch name
         run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
       - name: show github ref
-        run: echo ${{ github.ref }}
+        run: echo ${{GITHUB_REF}}
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
