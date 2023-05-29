@@ -1,6 +1,9 @@
 package grpc
 
-import "strconv"
+import (
+	"net"
+	"strconv"
+)
 
 type Config struct {
 	Host string `env:"HOST" envDefault:"localhost"`
@@ -12,5 +15,5 @@ func (c Config) PortToString() string {
 }
 
 func (c Config) Addr() string {
-	return c.Host + ":" + c.PortToString()
+	return net.JoinHostPort(c.Host, c.PortToString())
 }
