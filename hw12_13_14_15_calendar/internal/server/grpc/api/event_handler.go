@@ -19,6 +19,7 @@ type EventUseCase interface {
 type EventHandler struct {
 	app  EventUseCase
 	logg *zap.Logger
+	UnimplementedEventServiceServer
 }
 
 func NewEventHandler(app EventUseCase, logg *zap.Logger) *EventHandler {
@@ -83,5 +84,3 @@ func (e *EventHandler) GetEventByWeek(ctx context.Context, request *GetEventsReq
 func (e *EventHandler) GetEventByMonth(ctx context.Context, request *GetEventsRequest) (*GetEventsResponse, error) {
 	return e.getEvents(ctx, request.UserId, request.Time.AsTime(), e.app.GetEventsByMonth)
 }
-
-func (e *EventHandler) mustEmbedUnimplementedEventServiceServer() {}
