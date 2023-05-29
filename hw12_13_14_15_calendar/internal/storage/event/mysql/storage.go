@@ -19,15 +19,13 @@ var (
 var ErrNothingToUpdate = errors.New("nothing to update")
 
 var (
-	createQuery = "INSERT INTO events " +
-		"(title, description, time, duration_sec,  before_notice_sec, user_id)" +
-		" VALUES (?, ?, ?, ?, ?, ?)"
+	createQuery = `INSERT INTO events
+    (title, description, time, duration_sec,  before_notice_sec, user_id) 
+	VALUES (?, ?, ?, ?, ?, ?)`
 
-	getQuery = "SELECT id, title, description, time, duration_sec, before_notice_sec" +
-		" FROM events " +
-		"WHERE user_id = ? " +
-		"AND time BETWEEN ? AND ?"
-	deleteQuery = "DELETE FROM events WHERE id = ?"
+	getQuery = `SELECT id, title, description, time, duration_sec, before_notice_sec
+		FROM events WHERE user_id = ? AND time BETWEEN ? AND ?`
+	deleteQuery = `DELETE FROM events WHERE id = ?`
 )
 
 type Storage struct {
