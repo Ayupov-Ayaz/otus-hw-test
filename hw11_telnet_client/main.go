@@ -1,53 +1,79 @@
 package main
 
 import (
-	"bufio"
-	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
 var (
-	host    string
-	port    string
+	address string
 	timeout = flag.Duration("timeout", 10*time.Second, "connection timeout")
 )
 
-func parseArgs() error {
-	flag.Parse()
-	args := flag.Args()
+var (
+	errInvalidNumberOfArguments = errors.New("invalid number of arguments")
+	errHostIsEmpty              = errors.New("host is empty")
+	errPortIsEmpty              = errors.New("port is empty")
+)
+
+func parseArgs(args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("invalid number of arguments: %d", len(args))
+		return fmt.Errorf("%d: %w", len(args), errInvalidNumberOfArguments)
 	}
 
-	host = args[0]
-	port = args[1]
+	host := args[0]
+	port := args[1]
+
+	if host == "" {
+		return errHostIsEmpty
+	}
+
+	if port == "" {
+		return errPortIsEmpty
+	}
+
+	address = net.JoinHostPort(host, port)
 
 	return nil
 }
 
 func main() {
-	if err := parseArgs(); err != nil {
-		log.Fatalf("Failed to parse flags: %v", err)
+	flag.Parse()
+	if err := parseArgs(flag.Args()); err != nil {
+		log.Fatal(fmt.Errorf("parse flags failed: %w", err))
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT)
-	defer cancel()
+	client := NewTelnetClient(address, *timeout, os.Stdin, os.Stdout)
 
-	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), *timeout)
+	err := client.Connect()
 	if err != nil {
-		log.Fatalf("Failed to connect: %v", err)
+		log.Fatalf("failed to connect: %v", err)
+	}
+	defer client.Close()
+
+	go func() {
+		err := client.Receive()
+		if err != nil {
+			log.Printf("error receiving data: %v", err)
+		}
+	}()
+
+	err = client.Send()
+	if err != nil {
+		log.Fatalf("Failed to send data: %v", err)
 	}
 
-	defer conn.Close()
+	// Ожидание сигнала SIGINT для завершения программы
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	<-ch
 
-	reader := bufio.NewReader(conn)
-	go readFromSocket(reader, NewStdoutPrinter())
-
-	writeToSocket(ctx, conn)
+	log.Println("Program terminated")
 }

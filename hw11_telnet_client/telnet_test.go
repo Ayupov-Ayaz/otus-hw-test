@@ -2,11 +2,16 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/ayupov-ayaz/otus-hw-test/hw11_telnet_client/mocks"
 
 	"github.com/stretchr/testify/require"
 )
@@ -62,4 +67,98 @@ func TestTelnetClient(t *testing.T) {
 
 		wg.Wait()
 	})
+}
+
+type mock struct {
+	reader *mocks.MockReadCloser
+	writer *mocks.MockWriter
+	conn   *mocks.MockConn
+}
+
+func newMock(ctrl *gomock.Controller) *mock {
+	return &mock{
+		reader: mocks.NewMockReadCloser(ctrl),
+		writer: mocks.NewMockWriter(ctrl),
+		conn:   mocks.NewMockConn(ctrl),
+	}
+}
+
+func (m *mock) expectConnRead() *gomock.Call {
+	return m.conn.EXPECT().Read(gomock.Any()).Times(1)
+}
+
+func (m *mock) expectRead() *gomock.Call {
+	return m.reader.EXPECT().Read(gomock.Any()).Times(1)
+}
+
+func (m *mock) expectWrite() *gomock.Call {
+	return m.writer.EXPECT().Write(gomock.Any()).Times(1)
+}
+
+func TestTelnetClient_Receive(t *testing.T) {
+	errRead := errors.New("read failed")
+
+	tests := []struct {
+		name     string
+		before   func(m *mock)
+		expected string
+		err      error
+	}{
+		{
+			name: "failed to conn read",
+			err:  errRead,
+			before: func(m *mock) {
+				m.expectConnRead().Return(0, errRead)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			m := newMock(ctrl)
+			tt.before(m)
+
+			client, ok := NewTelnetClient("", 0, m.reader, m.writer).(*telnetClient)
+			require.True(t, ok)
+			client.conn = m.conn
+			require.ErrorIs(t, client.Receive(), tt.err)
+		})
+	}
+}
+
+func TestTelnetClient_Send(t *testing.T) {
+	errRead := errors.New("read failed")
+
+	tests := []struct {
+		name     string
+		before   func(m *mock)
+		expected string
+		err      error
+	}{
+		{
+			name: "failed to read",
+			err:  errRead,
+			before: func(m *mock) {
+				m.expectRead().Return(0, errRead)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			m := newMock(ctrl)
+			tt.before(m)
+
+			client, ok := NewTelnetClient("", 0, m.reader, m.writer).(*telnetClient)
+			require.True(t, ok)
+			client.conn = m.conn
+			require.ErrorIs(t, client.Send(), tt.err)
+		})
+	}
 }
