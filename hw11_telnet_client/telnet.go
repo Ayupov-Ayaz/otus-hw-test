@@ -12,7 +12,7 @@ import (
 
 type TelnetClient interface {
 	Connect() error
-	io.Closer
+	Close() error // io.Closer не использую т.к. lint ругается
 	Send() error
 	Receive() error
 }
@@ -44,10 +44,7 @@ func (c *telnetClient) Connect() error {
 }
 
 func (c *telnetClient) Close() error {
-	if c.conn != nil {
-		return c.conn.Close()
-	}
-	return nil
+	return c.conn.Close()
 }
 
 func (c *telnetClient) Send() error {
