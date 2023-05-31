@@ -9,10 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
-
 	"github.com/ayupov-ayaz/otus-hw-test/hw11_telnet_client/mocks"
-
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,6 +34,11 @@ func TestTelnetClient(t *testing.T) {
 
 			client := NewTelnetClient(l.Addr().String(), timeout, ioutil.NopCloser(in), out)
 			require.NoError(t, client.Connect())
+			defer func() {
+				err := client.Close()
+				require.NoError(t, err)
+			}()
+
 			in.WriteString("hello\n")
 			err = client.Send()
 			require.NoError(t, err)

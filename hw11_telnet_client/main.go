@@ -13,61 +13,59 @@ import (
 )
 
 var (
-	address string
-	timeout = flag.Duration("timeout", 10*time.Second, "connection timeout")
-)
-
-var (
 	errInvalidNumberOfArguments = errors.New("invalid number of arguments")
 	errHostIsEmpty              = errors.New("host is empty")
 	errPortIsEmpty              = errors.New("port is empty")
 )
 
-func parseArgs(args []string) error {
+func parseArgs(args []string) (string, error) {
 	if len(args) != 2 {
-		return fmt.Errorf("%d: %w", len(args), errInvalidNumberOfArguments)
+		return "", fmt.Errorf("%d: %w", len(args), errInvalidNumberOfArguments)
 	}
 
 	host := args[0]
 	port := args[1]
 
 	if host == "" {
-		return errHostIsEmpty
+		return "", errHostIsEmpty
 	}
 
 	if port == "" {
-		return errPortIsEmpty
+		return "", errPortIsEmpty
 	}
 
-	address = net.JoinHostPort(host, port)
+	address := net.JoinHostPort(host, port)
 
-	return nil
+	return address, nil
 }
 
-func main() {
+func getTimeout() time.Duration {
+	timeout := flag.Duration("timeout", 10*time.Second, "connection timeout")
 	flag.Parse()
-	if err := parseArgs(flag.Args()); err != nil {
-		log.Fatal(fmt.Errorf("parse flags failed: %w", err))
+
+	return *timeout
+}
+
+func run(address string, timeout time.Duration) error {
+	client := NewTelnetClient(address, timeout, os.Stdin, os.Stdout)
+
+	if err := client.Connect(); err != nil {
+		return err
 	}
 
-	client := NewTelnetClient(address, *timeout, os.Stdin, os.Stdout)
-
-	err := client.Connect()
-	if err != nil {
-		log.Fatalf("failed to connect: %v", err)
-	}
-	defer client.Close()
+	defer func() {
+		log.Println(client.Close())
+	}()
 
 	go func() {
 		err := client.Receive()
 		if err != nil {
-			log.Printf("error receiving data: %v", err)
+			log.Println(fmt.Errorf("failed to receive: %w", err))
 		}
 	}()
 
-	err = client.Send()
-	if err != nil {
-		log.Fatalf("Failed to send data: %v", err)
+	if err := client.Send(); err != nil {
+		return fmt.Errorf("failed to send data: %w", err)
 	}
 
 	// Ожидание сигнала SIGINT для завершения программы
@@ -76,4 +74,18 @@ func main() {
 	<-ch
 
 	log.Println("Program terminated")
+
+	return nil
+}
+
+func main() {
+	timeout := getTimeout()
+	address, err := parseArgs(flag.Args())
+	if err != nil {
+		log.Fatal(fmt.Errorf("parse flags failed: %w", err))
+	}
+
+	if err := run(address, timeout); err != nil {
+		log.Fatal(err)
+	}
 }

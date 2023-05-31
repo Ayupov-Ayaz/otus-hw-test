@@ -35,7 +35,7 @@ func TestParseArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := parseArgs(tt.args)
+			address, err := parseArgs(tt.args)
 			require.ErrorIs(t, err, tt.err)
 
 			if tt.err == nil {
