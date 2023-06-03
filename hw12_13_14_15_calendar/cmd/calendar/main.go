@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/signals"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/validator"
 	"log"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal"
@@ -57,7 +55,7 @@ func run() error {
 	}
 
 	calendar := app.New(validator.New(), storage, logg)
-	notifyCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	notifyCtx, cancel := signals.NotifyCtx()
 	defer cancel()
 
 	stopHTTP, err := startHTTP(notifyCtx, calendar, logg, config.HTTP.Addr())
