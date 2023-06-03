@@ -12,6 +12,8 @@ storage:
   db: "calendar"
   timeouts:
     read: 5s
+event:
+  name: "Events"
 queue:
   host: "localhost"
   port: 5672
