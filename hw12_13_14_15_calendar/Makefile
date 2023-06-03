@@ -1,14 +1,29 @@
 BIN := "./bin/calendar"
+SENDER_BIN := "./bin/sender"
+SHEDULER_BIN := "./bin/scheduler"
+CONFIG := "./configs/config.yaml"
 DOCKER_IMG="calendar:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
-build:
+build-calendar:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
-run: build
-	$(BIN) -config ./configs/config.yaml
+build-sheduler:
+	go build -v -o $(SHEDULER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sheduler
+
+build-sender:
+	go build -v -o $(SENDER_BIN) -ldflags "$(LDFLAGS)" ./cmd/sender
+
+run-calendar: build-calendar
+	$(BIN) -config $(CONFIG)
+
+run-sender: build-sender
+	$(SENDER_BIN) -config $(CONFIG)
+
+run-sheduler: build-sheduler
+	$(SHEDULER_BIN) -config $(CONFIG)
 
 build-img:
 	docker build \
