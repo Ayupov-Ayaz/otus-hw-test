@@ -53,3 +53,9 @@ integration-test:
 .PHONY: generate
 generate:
 	go generate ./...
+
+docker-run-mysql:
+	docker run --name calendar-mysql -e MYSQL_ROOT_PASSWORD=${pwd} -e MYSQL_DATABASE=${db} -p ${port}:3306 -d mysql:latest
+
+docker-run-rabbitmq:
+	docker run -d --hostname my-rabbit --name calendar-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
