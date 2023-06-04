@@ -52,15 +52,14 @@ func (s *Storage) Delete(_ context.Context, id int64) error {
 	return nil
 }
 
-func (s *Storage) GetEventsForDates(_ context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
+func (s *Storage) GetEventsForDates(_ context.Context, start, end time.Time) ([]entity.Event, error) {
 	var resp []entity.Event
 	s.mu.RLock()
 	for _, event := range s.events {
-		eventDate := event.EventDate().YearDay()
+		eventDate := event.EventDate().UnixMilli()
 
-		if event.UserID == userID &&
-			eventDate >= start.YearDay() &&
-			eventDate <= end.YearDay() {
+		if eventDate >= start.UnixMilli() &&
+			eventDate <= end.UnixMilli() {
 			resp = append(resp, event)
 		}
 	}

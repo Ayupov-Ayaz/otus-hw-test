@@ -70,31 +70,31 @@ func TestStorage_Get(t *testing.T) {
 	e.ID = id
 	e.UserID = userID
 
-	e.DateTime = entity.MyTime(time.Now())
+	e.DateTime = entity.MyTime(time.Now().Add(24 * time.Hour))
 	store := New()
 	store.events[id] = e
 	ctx := context.Background()
 
 	tests := []struct {
-		name string
-		id   int64
-		exp  []entity.Event
-		err  error
+		name    string
+		exp     []entity.Event
+		addTime time.Duration
+		err     error
 	}{
 		{
-			name: "event not found",
-			id:   12,
+			name:    "event not found",
+			addTime: 23 * time.Hour,
 		},
 		{
-			name: "success",
-			id:   userID,
-			exp:  []entity.Event{e},
+			name:    "success",
+			addTime: 24 * time.Hour,
+			exp:     []entity.Event{e},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := store.GetEventsForDates(ctx, tt.id, time.Now(), time.Now().Add(24*time.Hour))
+			got, err := store.GetEventsForDates(ctx, time.Now(), time.Now().Add(tt.addTime))
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, tt.exp, got)
 		})

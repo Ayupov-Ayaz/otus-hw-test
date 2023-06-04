@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +45,7 @@ func TestUnmarshalEnv_WithDefaultConfigs(t *testing.T) {
 			}
 
 			cfg := &Config{}
-			err := unmarshalEnv(cfg)
+			err := settings.UnmarshalEnv(envPrefix, cfg)
 			require.ErrorIs(t, err, tt.err)
 			require.NotNil(t, cfg)
 			tt.checker(t, cfg)
@@ -69,10 +71,11 @@ logger:
   level: info`
 
 	f := createYamlFile(t, data)
-	os.Remove(f.Name())
+	err := os.Remove(f.Name())
+	require.NoError(t, err)
 
 	cfg := &Config{}
-	err := unmarshalYaml([]byte(data))(cfg)
+	err = settings.UnmarshalYaml([]byte(data), cfg)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 	require.Equal(t, 8081, cfg.HTTP.Port)

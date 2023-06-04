@@ -16,7 +16,7 @@ func NewEvent(
 	title, description string,
 	userID int64,
 	time MyTime,
-	duration, notifications Duration,
+	duration, notification Duration,
 ) Event {
 	return Event{
 		Description:  description,
@@ -24,7 +24,7 @@ func NewEvent(
 		UserID:       userID,
 		DateTime:     time,
 		Duration:     duration,
-		Notification: notifications,
+		Notification: notification,
 	}
 }
 

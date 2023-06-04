@@ -3,6 +3,9 @@ logger:
 http:
     host: localhost
     port: 8080
+grpc:
+  host: localhost
+  port: 9001
 storage:
   driver: "mysql"
   host: "localhost"
@@ -10,5 +13,14 @@ storage:
   user: ""
   password: ""
   db: "calendar"
-  timeouts:
-    read: 5s
+event:
+  name: "Events"
+queue:
+  host: "localhost"
+  port: 5672
+  user: ""
+  pass: ""
+intervals:
+  day: 1m
+  week: 1h
+  month: 24h

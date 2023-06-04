@@ -24,7 +24,7 @@ var (
 	VALUES (?, ?, ?, ?, ?, ?)`
 
 	getQuery = `SELECT id, title, description, time, duration_sec, before_notice_sec
-		FROM events WHERE user_id = ? AND time BETWEEN ? AND ?`
+		FROM events WHERE time BETWEEN ? AND ?`
 	deleteQuery = `DELETE FROM events WHERE id = ?`
 )
 
@@ -93,8 +93,8 @@ func (s *Storage) Delete(ctx context.Context, id int64) (err error) {
 	return checkExecResult(result)
 }
 
-func (s *Storage) GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error) {
-	rows, err := s.db.QueryxContext(ctx, getQuery, userID, start, end)
+func (s *Storage) GetEventsForDates(ctx context.Context, start, end time.Time) ([]entity.Event, error) {
+	rows, err := s.db.QueryxContext(ctx, getQuery, start, end)
 	if err != nil {
 		return nil, err
 	}
