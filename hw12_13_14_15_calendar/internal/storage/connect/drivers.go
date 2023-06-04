@@ -3,13 +3,13 @@ package connect
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 const (
-	MySQL = "mysql"
+	MySQL   = "mysql"
+	timeout = 5 * time.Second
 )
 
 type Config struct {
@@ -19,11 +19,6 @@ type Config struct {
 	DB       string
 	Host     string
 	Port     int
-	Timeouts Timeouts
-}
-
-type Timeouts struct {
-	Read time.Duration
 }
 
 func mysqlDSN(config Config) string {
@@ -43,7 +38,7 @@ func New(config Config) (db *sqlx.DB, err error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.Timeouts.Read)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	if err = db.PingContext(ctx); err != nil {

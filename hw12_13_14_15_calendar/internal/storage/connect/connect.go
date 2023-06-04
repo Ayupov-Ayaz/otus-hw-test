@@ -1,12 +1,11 @@
-package main
+package connect
 
 import (
 	"fmt"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/event"
 
-	config "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/storage"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/connect"
+	config "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings/storage"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,18 +14,8 @@ func getConnect(config config.Config) (resp func() *sqlx.DB, err error) {
 		return func() *sqlx.DB { return nil }, nil
 	}
 
-	cfg := connect.Config{
-		Driver:   config.Driver,
-		User:     config.User,
-		Password: config.Password,
-		DB:       config.DB,
-		Host:     config.Host,
-		Port:     config.Port,
-		Timeouts: connect.Timeouts{Read: config.Timeouts.Read},
-	}
-
 	var db *sqlx.DB
-	db, err = connect.New(cfg)
+	db, err = New(Config(config))
 	if err != nil {
 		return nil, err
 	}

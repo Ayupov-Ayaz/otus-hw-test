@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
+	app "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app/calendar"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/grpc/api"
 	internalhttp "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/server/http"
 	"go.uber.org/zap"

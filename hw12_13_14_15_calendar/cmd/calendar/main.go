@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/signals"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/storage/connect"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/validator"
 	"log"
 	"time"
@@ -13,7 +14,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app"
+	app "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app/calendar"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
 )
 
@@ -49,7 +50,7 @@ func run() error {
 	logg.Info("using config file", zap.String("path", configFile))
 	logg.Info("using storage", zap.String("driver", config.Storage.Driver))
 
-	storage, err := NewStorage(config.Storage)
+	storage, err := connect.NewStorage(config.Storage)
 	if err != nil {
 		return err
 	}

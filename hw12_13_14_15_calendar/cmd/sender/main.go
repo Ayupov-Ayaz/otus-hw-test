@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/sender/app"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/sender/internal/config"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/sender/internal"
+	app "github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/app/sender"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/logger"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/queue/rabbit"
 	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/internal/signals"
@@ -28,7 +28,7 @@ func main() {
 func run() error {
 	flag.Parse()
 
-	cfg, err := config.NewConfig(configFile)
+	cfg, err := internal.NewConfig(configFile)
 	if err != nil {
 		return fmt.Errorf("failed to create config: %w", err)
 	}

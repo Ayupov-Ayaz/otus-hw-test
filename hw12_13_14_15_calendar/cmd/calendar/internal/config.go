@@ -2,15 +2,14 @@ package internal
 
 import (
 	"fmt"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/parser"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings/grpc"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/grpc"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings/logger"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/logger"
-
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/http"
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/cmd/calendar/internal/configs/storage"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings/http"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings/storage"
 
 	yaml3 "gopkg.in/yaml.v3"
 )
@@ -41,11 +40,11 @@ func unmarshalYaml(data []byte) func(cfg *Config) error {
 func NewConfig(configFile string) (*Config, error) {
 	cfg := &Config{}
 
-	if err := parser.UnmarshalEnv(envPrefix, cfg); err != nil {
+	if err := settings.UnmarshalEnv(envPrefix, cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal env: %w", err)
 	}
 
-	if err := parser.UnmarshalYamlFile(configFile, cfg); err != nil {
+	if err := settings.UnmarshalYamlFile(configFile, cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal yaml: %w", err)
 	}
 
