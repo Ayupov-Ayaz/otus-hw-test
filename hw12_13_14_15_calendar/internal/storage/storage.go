@@ -11,5 +11,5 @@ type Event interface {
 	Create(ctx context.Context, event entity.Event) (id int64, err error)
 	Update(ctx context.Context, event entity.Event) error
 	Delete(ctx context.Context, id int64) error
-	GetEventsForDates(ctx context.Context, userID int64, start, end time.Time) ([]entity.Event, error)
+	GetEventsForDates(ctx context.Context, start, end time.Time) ([]entity.Event, error)
 }

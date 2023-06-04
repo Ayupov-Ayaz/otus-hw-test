@@ -3,6 +3,9 @@ logger:
 http:
     host: localhost
     port: 8080
+grpc:
+  host: localhost
+  port: 9001
 storage:
   driver: "mysql"
   host: "localhost"
@@ -17,3 +20,7 @@ queue:
   port: 5672
   user: ""
   pass: ""
+intervals:
+  day: 1m
+  week: 1h
+  month: 24h

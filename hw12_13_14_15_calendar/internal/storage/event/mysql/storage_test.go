@@ -99,22 +99,20 @@ func TestEventRepository_GetEventForDays(t *testing.T) {
 	storage := New(db)
 
 	tests := []struct {
-		name   string
-		userID int64
-		exp    []entity.Event
-		start  time.Time
-		end    time.Time
-		err    error
+		name  string
+		exp   []entity.Event
+		start time.Time
+		end   time.Time
+		err   error
 	}{
 		{
-			name:   "events not found",
-			userID: userID,
+			name: "events not found",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotEvent, err := storage.GetEventsForDates(context.Background(), tt.userID, tt.start, tt.end)
+			gotEvent, err := storage.GetEventsForDates(context.Background(), tt.start, tt.end)
 			require.ErrorIs(t, err, tt.err)
 			require.Equal(t, tt.exp, gotEvent)
 		})

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/parser"
+	"github.com/ayupov-ayaz/otus-wh-test/hw12_13_14_15_calendar/configs/settings"
 
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +45,7 @@ func TestUnmarshalEnv_WithDefaultConfigs(t *testing.T) {
 			}
 
 			cfg := &Config{}
-			err := parser.UnmarshalEnv(envPrefix, cfg)
+			err := settings.UnmarshalEnv(envPrefix, cfg)
 			require.ErrorIs(t, err, tt.err)
 			require.NotNil(t, cfg)
 			tt.checker(t, cfg)
@@ -75,7 +75,7 @@ logger:
 	require.NoError(t, err)
 
 	cfg := &Config{}
-	err = parser.UnmarshalYaml([]byte(data), cfg)
+	err = settings.UnmarshalYaml([]byte(data), cfg)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 	require.Equal(t, 8081, cfg.HTTP.Port)
